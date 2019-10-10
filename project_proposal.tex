@@ -1,5 +1,6 @@
 \documentclass[UTF8]{ctexart}
-\title{一种基于RaspberryPi的在线异味监管系统 立项建议书}
+\usepackage{graphicx}
+\title{基于RaspberryPi的厕所空气质量智能在线监管系统 立项建议书}
 \author{陈彦宁, 刘涵之}
 \date{2019 年 10 月 10 日}
 \begin{document}
@@ -17,7 +18,13 @@
 \subsection{系统构成}
 系统分为三个部分：终端设备、数据后端与监控前端。终端设备为传感器与执行器的搭载端，通过板载模块实现数据采集与主动空气净化等主体功能。数据后端为中间层，作为网关管理所有的终端设备，记录所有设备的历史数据与状态，同时负责下放各类控制指令。监控前端为面向最终用户的 Web 单页应用，为用户可接触到的界面，使得用户可以查看所有终端设备的状态，监控所有厕所的情况，并允许用户控制系统的运行。
 
-其逻辑架构如图 所示。
+其逻辑架构如图 \ref{fig:diagram} 所示。
+\begin{figure}[htbp]
+    \noindent\makebox[\textwidth]{
+        \includegraphics[width=.8\textwidth]{diagram.png}
+    }
+    \caption{逻辑架构}\label{fig:diagram}
+\end{figure}
 \subsection{技术选型}
 终端设备为树莓派开发版，其上搭载 H2S(g) 与 NH3(g) 传感器，以实现对厕所臭味状况的实时感知。同时，可外接继电器或输出其他信号，以实现智能开启排风扇、喷洒除臭剂等主动防控功能。设备使用 5V 2A MicroUSB 供电，原型将使用充电宝/适配器进行供电，在生产环境可以考虑使用热插拔电池包。设备使用 WiFi 或 4G 网络接入互联网，并拥有自己的设备 token，以实时回传数据。
 
@@ -38,27 +45,30 @@
 \paragraph{第5周}系统整体运行调试，检查、修复漏洞
 \paragraph{第6、7、8周}美化前端页面，系统长时间运行稳定性测试
 \section{经费预算}
-经费预算见 \ref{fig:bom}。
+经费预算见 表 \ref{tab:bom}。
 \begin{table}[htbp]
     \noindent\makebox[\textwidth]{
         \begin{tabular}{c|c|c|c}
             \hline
-            材料名称            & 单价/元     & 数量 & 总价/元     \\
+            材料名称             & 单价/元 & 数量 & 总价/元 \\
             \hline
-            Raspberry Pi 4B     & 279/353/435 & 1    & 279/353/435 \\
+            Raspberry Pi 4B      & 435     & 1    & 435     \\
             \hline
-            MQ-137 氨气传感器   & 85          & 1    & 85          \\
+            MQ-137 氨气传感器    & 85      & 1    & 85      \\
             \hline
-            MQ-136 硫化氢传感器 & 85          & 1    & 85          \\
+            MQ-136 硫化氢传感器  & 85      & 1    & 85      \\
             \hline
-            (型号？)风扇        & 40          & 1    & 40          \\
+            BG0903-B049-P0S 风扇 & 20      & 1    & 20      \\
             \hline
-            ADC 模块            & 148         & 1    & 148         \\
+            ADC 模块             & 148     & 1    & 148     \\
             \hline
-            ECS服务器           & 120         & 1    & 120         \\
+            ECS 服务器           & 120     & 1    & 120     \\
+            \hline
+            总计                 & ---     & ---  & 893     \\
             \hline
         \end{tabular}
     }
-    \caption{经费预算}\label{fig:bom}
+    \caption{经费预算}\label{tab:bom}
 \end{table}
+\pagebreak
 \end{document}
