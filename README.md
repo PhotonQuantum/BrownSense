@@ -1,29 +1,24 @@
-# brown_sense
+# BrownSense
 
-## Project setup
-```
-yarn install
-```
+🚽 A distributed IoT platform for monitoring and improving toilet's indoor air quality. 
 
-### Compiles and hot-reloads for development
-```
-yarn run serve
-```
+> Work In Progress
 
-### Compiles and minifies for production
-```
-yarn run build
+0. Deploy Couchdb and create database "test" (serves at http://localhost:5984/)
+
+1. Start dummy data generator
+``` bash
+cd backend
+python runner.py
 ```
 
-### Run your tests
-```
-yarn run test
-```
-
-### Lints and fixes files
-```
-yarn run lint
+2. Start data backend
+``` bash
+cd backend
+python test_watcher.py
 ```
 
-### Customize configuration
-See [Configuration Reference](https://cli.vuejs.org/config/).
+3. Serve frontend & hot reload
+``` bash
+yarn serve
+```
