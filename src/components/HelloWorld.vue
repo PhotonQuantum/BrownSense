@@ -90,6 +90,11 @@ export default {
       animation: {
         duration: 0 // general animation time
       },
+      elements: {
+        line: {
+          tension: 0 // disables bezier curves
+        }
+      },
       scales: {
         xAxes: [
           {
