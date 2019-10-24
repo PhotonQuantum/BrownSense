@@ -6,6 +6,7 @@ import PouchVue from 'pouch-vue'
 import lf from 'pouchdb-find';
 import plf from 'pouchdb-live-find';
 import auth from 'pouchdb-authentication';
+import vuetify from './plugins/vuetify';
 PouchDB.plugin(lf);
 PouchDB.plugin(plf);
 PouchDB.plugin(auth);
@@ -21,5 +22,6 @@ Vue.use(PouchVue, {
 
 new Vue({
   store,
+  vuetify,
   render: h => h(App)
 }).$mount('#app')
