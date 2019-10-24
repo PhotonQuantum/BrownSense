@@ -2,61 +2,155 @@
 from concurrent.futures.thread import ThreadPoolExecutor
 from couchdb import Server
 from queue import SimpleQueue
+from uuid import uuid4
 import time
+import random
+import sys
+import json
+from enum import Enum
 
 server = Server("http://127.0.0.1:5984/")
-db = server["test"]
+db_datagrid = server["datagrid"]
+db_command = server["command"]
+db_summary = server["summary"]
 task_queue = SimpleQueue()
-device_id = 1
+device_id = sys.argv[1]
 terminated = False
+actuator = False
 
 
-def rtn_dict(type, info):
-    doc = {"device": device_id, "type": type,
-           "info": info, "time": time.time()}
+class buffer_params():
+    override_status = Enum("overrides", "disabled force_on force_off")
+    _tmp_lower = 490
+    _tmp_upper = 510
+    _tmp_override = override_status.disabled
+
+    def __init__(self):
+        self.update()
+
+    def update(self):
+        self._lower = self._tmp_lower
+        self._upper = self._tmp_upper
+        self._override = self._tmp_override
+
+    @property
+    def lower(self):
+        return self._lower
+
+    @lower.setter
+    def set_lower(self, val):
+        self._tmp_lower = val
+
+    @property
+    def upper(self):
+        return self._upper
+
+    @upper.setter
+    def set_upper(self, val):
+        self._tmp_upper = val
+
+    @property
+    def override(self):
+        return self._override
+
+    @override.setter
+    def set_override(self, val):
+        self._tmp_override = val
+
+
+actuator_params = buffer_params()
+
+
+def update_doc(db, mango_query, data):
+    query = list(db.find(mango_query))
+    if query:
+        data["_id"] = query[0].id
+        data["_rev"] = query[0].rev
+    else:
+        data["_id"] = uuid4().hex
+    db.save(data)
+
+def rtn_dict_dg(type, data):
+    doc = {"_id": uuid4().hex, "time": time.time(), "device": device_id,
+           "type": type, "data": data}
     return doc
 
 
+def rtn_dict_summary(status, actuator):
+    return {"device": device_id, "time": time.time(), "status": status, "actuator": actuator}
+
 def db_watcher():
-    watcher = db.changes(feed="continuous", include_docs=True)
+    watcher = db_command.changes(feed="continuous", include_docs=True)
     for line in watcher:
-        if terminated:
-            break
+        params = json.loads(line)
+        # These parameters won't take affect until buffer_params.update is called.
+        buffer_params.lower = params["auto_params"]["lower"]
+        buffer_params.upper = params["auto_params"]["upper"]
+        buffer_params.override = buffer_params.override_status[params["override"]]
         print(line)
 
 
 def i2c_watcher(queue):
-    i2c_data = ""
-    with open("test", mode="r") as f:
-        while True:
-            if terminated:
-                break
-            f.seek(0)
-            i2c_data = f.read()
-            print(f"[i2c_watcher] i2c: {i2c_data}")
-            if i2c_data > "510":
-                print("[i2c_watcher] event trigger!")
-                queue.put({"func": acturator_trigger, "params": [True]})
-                print("[i2c_watcher] event triggered")
-            elif i2c_data < "490":
-                print("[i2c_watcher] event trigger!")
-                queue.put({"func": acturator_trigger, "params": [False]})
-                print("[i2c_watcher] event triggered")
-            db.save(rtn_dict("sensor", i2c_data))
-            time.sleep(1)
+    i2c_data = 500
+    while True:
+        if terminated:
+            break
+        i2c_data += random.randint(-2,
+                                   3) if not actuator else random.randint(-8, 0)
+        print(f"[i2c_watcher] i2c: {i2c_data}")
+        if (((i2c_data > actuator_params.upper) and not actuator_params.override == actuator_params.override_status.force_off) or actuator_params.override == actuator_params.override_status.force_on) and not actuator:
+            print("[i2c_watcher] event trigger!")
+            queue.put({"func": acturator_trigger, "params": [True]})
+            print("[i2c_watcher] event triggered")
+        if (((i2c_data < actuator_params.lower) and not actuator_params.override == actuator_params.override_status.force_on) or actuator_params.override == actuator_params.override_status.force_off) and actuator:
+            print("[i2c_watcher] event trigger!")
+            queue.put({"func": acturator_trigger, "params": [False]})
+            print("[i2c_watcher] event triggered")
+        db_datagrid.save(rtn_dict_dg("h2s", i2c_data))
+        time.sleep(1)
+
+
+def params_timer():
+    while True:
+        if terminated:
+            break
+        actuator_params.update()
+        time.sleep(1)
+
+
+def report_timer():
+    while True:
+        if terminated:
+            break
+
+        print("reporting")
+
+        if buffer_params.override == buffer_params.override_status.force_on:
+            status = "force_on"
+        elif buffer_params.override == buffer_params.override_status.force_off:
+            status = "force_off"
+        else:
+            status = "auto"
+
+        update_doc(db_summary, {"selector": {"device": device_id}}, rtn_dict_summary(status, actuator))
+
+        time.sleep(1)
 
 
 def acturator_trigger(enabled):
+    global actuator
     print("starting" if enabled else "stoping")
     time.sleep(0.5)
-    db.save(rtn_dict("actuator", enabled))
+    actuator = enabled
+    db_datagrid.save(rtn_dict_dg("actuator", enabled))
     print("started" if enabled else "stoped")
 
 
 with ThreadPoolExecutor() as executor:
-    db.save(rtn_dict("system", "online"))
     db_future = executor.submit(db_watcher)
     i2c_future = executor.submit(i2c_watcher, task_queue)
+    reporter_future = executor.submit(report_timer)
+    params_future = executor.submit(params_timer)
     print("listening for tasks")
     try:
         while True:
@@ -64,4 +158,4 @@ with ThreadPoolExecutor() as executor:
             executor.submit(task["func"], *task["params"])
     except KeyboardInterrupt:
         terminated = True
-        db.save(rtn_dict("system", "offline"))
+        update_doc(db_summary, {"selector": {"device": device_id}}, rtn_dict_summary("offline", actuator))

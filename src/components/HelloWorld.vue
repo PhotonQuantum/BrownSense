@@ -114,15 +114,15 @@ export default {
   },
 
   pouch: {
-    test: {},
     dev_one() {
       return {
-        database: "test",
+        database: "datagrid",
         selector: {
-          device: 1,
-          type: "sensor",
+          device: "1",
+          type: "h2s",
           time: { $gt: this.datenow - 100 }
-        }
+        },
+        sort: [{time: "asc"}]
       };
     }
   },
@@ -150,7 +150,7 @@ export default {
           {
             label: "H2S",
             backgroundColor: "#f87979",
-            data: val.map(x => ({ x: x.time, y: x.info }))
+            data: val.map(x => ({ x: x.time, y: x.data }))
           }
         ]
       };
@@ -163,7 +163,7 @@ export default {
   created: function() {
     this.loaded = false;
     // Send all documents to the remote database, and stream changes in real-time. Note if you use filters you need to set them correctly for pouchdb and couchdb. You can set them for each direction separatly: options.push/options.pull. PouchDB might not need the same filter to push documents as couchdb to send the filtered requested documents.
-    this.$pouch.sync("test", "http://localhost:5984/test");
+    this.$pouch.sync("datagrid", "http://localhost:5984/datagrid");
     // this.$pouch.sync("dev_one", "http://localhost:5984/test");
     this.$on("pouchdb-db-created", function() {
       this.loaded = true;
