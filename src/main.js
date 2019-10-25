@@ -1,5 +1,6 @@
 import Vue from 'vue'
 import App from './App.vue'
+import router from "./router"
 import store from './store'
 import PouchDB from 'pouchdb-browser'
 import PouchVue from 'pouch-vue'
@@ -20,7 +21,10 @@ Vue.use(PouchVue, {
   // debug: '*' // optional - See `https://pouchdb.com/api.html#debug_mode` for valid settings (will be a separate Plugin in PouchDB 7.0)
 });
 
+
+
 new Vue({
+  router, 
   store,
   vuetify,
   render: h => h(App)
