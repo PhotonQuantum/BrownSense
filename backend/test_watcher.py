@@ -92,6 +92,7 @@ def db_watcher():
 
 def i2c_watcher(queue):
     i2c_data = 500
+    time_count = 0
     while True:
         if terminated:
             break
@@ -106,7 +107,11 @@ def i2c_watcher(queue):
             print("[i2c_watcher] event trigger!")
             queue.put({"func": acturator_trigger, "params": [False]})
             print("[i2c_watcher] event triggered")
-        db_datagrid.save(rtn_dict_dg("h2s", i2c_data))
+        time_count += 1
+        if time_count % 30 == 0:
+            print("report sensor data")
+            db_datagrid.save(rtn_dict_dg("h2s", i2c_data))
+            time_count = 0
         time.sleep(1)
 
 
@@ -123,7 +128,6 @@ def report_timer():
         if terminated:
             break
 
-        print("reporting")
 
         if buffer_params.override == buffer_params.override_status.force_on:
             status = "force_on"
