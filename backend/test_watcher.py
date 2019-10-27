@@ -17,6 +17,10 @@ task_queue = SimpleQueue()
 device_id = sys.argv[1]
 terminated = False
 actuator = False
+try:
+    graceful = True if sys.argv[2] == 1 else False
+except IndexError:
+    graceful = True
 
 
 class buffer_params():
@@ -160,4 +164,5 @@ with ThreadPoolExecutor() as executor:
             executor.submit(task["func"], *task["params"])
     except KeyboardInterrupt:
         terminated = True
-        update_doc(db_summary, {"selector": {"device": device_id}}, rtn_dict_summary("offline", actuator))
+        if graceful:
+            update_doc(db_summary, {"selector": {"device": device_id}}, rtn_dict_summary("offline", actuator))
