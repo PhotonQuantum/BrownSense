@@ -80,15 +80,13 @@ def rtn_dict_summary(status, actuator):
     return {"device": device_id, "time": time.time(), "status": status, "actuator": actuator}
 
 def db_watcher():
-    watcher = db_command.changes(feed="continuous", include_docs=True)
-    for line in watcher:
-        params = json.loads(line)
+    while not terminated:
+        watcher = db_command.changes(feed="longpoll", timeout=5, include_docs=True)
+        params = json.loads(watcher)
         # These parameters won't take affect until buffer_params.update is called.
         buffer_params.lower = params["auto_params"]["lower"]
         buffer_params.upper = params["auto_params"]["upper"]
         buffer_params.override = buffer_params.override_status[params["override"]]
-        print(line)
-
 
 def i2c_watcher(queue):
     i2c_data = 500
