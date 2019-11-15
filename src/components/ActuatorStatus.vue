@@ -13,7 +13,7 @@ export default {
     datacollection: function() {
         return {
             datasets: [{
-                data: [this.working, this.pending, this.offline],
+                data: [this.working, this.pending],
                 backgroundColor: ["#36a2eb", "#757575"]
             }],
             labels: [
