@@ -70,7 +70,7 @@ export default {
   },
   watch: {
     datagrid: function(val) {
-      var filter_time;
+      let filter_time;
       filter_time = new Date() / 1000 - 500;
       console.log(filter_time);
       this.datacollection = {
@@ -96,7 +96,7 @@ export default {
       ...{ live: true }
     });
     */
-   this.db_datagrid = new PouchDB("http://localhost:5984/datagrid")
+   this.db_datagrid = new PouchDB("http://localhost:5984/datagrid");
     // this.$pouch.sync("dev_one", "http://localhost:5984/test");
     this.$on("pouchdb-db-created", function() {
       this.loaded = true;

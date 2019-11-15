@@ -4,7 +4,7 @@ import Summary from '@/components/Summary'
 import About from '@/components/About'
 import Detail from '@/components/Detail'
 import DeviceDetail from '@/components/DeviceDetail'
-Vue.use(Router)
+Vue.use(Router);
 export default new Router({
     routes:[
         {

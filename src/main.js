@@ -12,7 +12,7 @@ PouchDB.plugin(lf);
 PouchDB.plugin(plf);
 PouchDB.plugin(auth);
 
-Vue.config.productionTip = false
+Vue.config.productionTip = false;
 
 Vue.use(PouchVue, {
   pouch: PouchDB,    // optional if `PouchDB` is available on the global object
@@ -28,4 +28,4 @@ new Vue({
   store,
   vuetify,
   render: h => h(App)
-}).$mount('#app')
+}).$mount('#app');
