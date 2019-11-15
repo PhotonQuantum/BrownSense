@@ -15,6 +15,8 @@ db_command = server["command"]
 db_summary = server["summary"]
 task_queue = SimpleQueue()
 device_id = sys.argv[1]
+nh3=0
+h2s=0
 terminated = False
 actuator = False
 try:
@@ -80,8 +82,8 @@ def rtn_dict_dg(type, data):
     return doc
 
 
-def rtn_dict_summary(status, actuator):
-    return {"device": device_id, "time": time.time(), "status": status, "actuator": actuator}
+def rtn_dict_summary(status, h2s, nh3, actuator):
+    return {"device": device_id, "time": time.time(), "status": status, "h2s": h2s, "nh3": nh3, "actuator": actuator}
 
 def db_watcher():
     while not terminated:
@@ -93,19 +95,26 @@ def db_watcher():
         buffer_params.override = buffer_params.override_status[params["override"]]
 
 def i2c_watcher(queue):
+    global h2s
+    global nh3
     i2c_data = 500
+    nh3_data = 500
     time_count = 0
     while True:
         if terminated:
             break
         i2c_data += random.randint(-2,
                                    3) if not actuator else random.randint(-8, 0)
+        nh3_data += random.randint(-2,
+                                   3) if not actuator else random.randint(-8, 0)
+        h2s = i2c_data
+        nh3 = nh3_data
         print(f"[i2c_watcher] i2c: {i2c_data}")
-        if (((i2c_data > actuator_params.upper) and not actuator_params.override == actuator_params.override_status.force_off) or actuator_params.override == actuator_params.override_status.force_on) and not actuator:
+        if (((i2c_data > actuator_params.upper or nh3_data > actuator_params.upper) and not actuator_params.override == actuator_params.override_status.force_off) or actuator_params.override == actuator_params.override_status.force_on) and not actuator:
             print("[i2c_watcher] event trigger!")
             queue.put({"func": acturator_trigger, "params": [True]})
             print("[i2c_watcher] event triggered")
-        if (((i2c_data < actuator_params.lower) and not actuator_params.override == actuator_params.override_status.force_on) or actuator_params.override == actuator_params.override_status.force_off) and actuator:
+        if (((i2c_data < actuator_params.lower and nh3_data < actuator_params.upper) and not actuator_params.override == actuator_params.override_status.force_on) or actuator_params.override == actuator_params.override_status.force_off) and actuator:
             print("[i2c_watcher] event trigger!")
             queue.put({"func": acturator_trigger, "params": [False]})
             print("[i2c_watcher] event triggered")
@@ -138,7 +147,7 @@ def report_timer():
         else:
             status = "auto"
 
-        update_doc(db_summary, {"selector": {"device": device_id}}, rtn_dict_summary(status, actuator))
+        update_doc(db_summary, {"selector": {"device": device_id}}, rtn_dict_summary(status, h2s, nh3, actuator))
 
         time.sleep(1)
 
@@ -165,4 +174,4 @@ with ThreadPoolExecutor() as executor:
     except KeyboardInterrupt:
         terminated = True
         if graceful:
-            update_doc(db_summary, {"selector": {"device": device_id}}, rtn_dict_summary("offline", actuator))
+            update_doc(db_summary, {"selector": {"device": device_id}}, rtn_dict_summary("offline", 0, 0, actuator))
