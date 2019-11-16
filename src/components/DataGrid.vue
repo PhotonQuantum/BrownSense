@@ -2,8 +2,8 @@
     <v-container>
         <v-layout text-center wrap>
             <v-flex mb-5 xs12>
-                <v-row>
-                    <v-col cols="12">
+                <v-row justify="center">
+                    <v-col cols="12" md="8">
                         <v-skeleton-loader type="list-item, image" :loading="loading">
                 <v-card>
                     <v-card-title>
@@ -26,7 +26,7 @@
                     </v-card-text>
                 </v-card></v-skeleton-loader>
                     </v-col>
-                    <v-col cols="12">
+                    <v-col cols="12" md="8">
                         <v-skeleton-loader type="list-item, image" :loading="loading">
                 <v-card>
                     <v-card-title>
@@ -231,6 +231,6 @@
     }
 
     .sensor-graph {
-        height: calc(40vw);
+        height: calc(30vh);
     }
 </style>
