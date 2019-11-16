@@ -114,7 +114,7 @@ def i2c_watcher(queue):
             print("[i2c_watcher] event trigger!")
             queue.put({"func": acturator_trigger, "params": [True]})
             print("[i2c_watcher] event triggered")
-        if (((i2c_data < actuator_params.lower and nh3_data < actuator_params.upper) and not actuator_params.override == actuator_params.override_status.force_on) or actuator_params.override == actuator_params.override_status.force_off) and actuator:
+        if (((i2c_data < actuator_params.lower and nh3_data < actuator_params.lower) and not actuator_params.override == actuator_params.override_status.force_on) or actuator_params.override == actuator_params.override_status.force_off) and actuator:
             print("[i2c_watcher] event trigger!")
             queue.put({"func": acturator_trigger, "params": [False]})
             print("[i2c_watcher] event triggered")
@@ -122,6 +122,7 @@ def i2c_watcher(queue):
         if time_count % 30 == 0:
             print("report sensor data")
             db_datagrid.save(rtn_dict_dg("h2s", i2c_data))
+            db_datagrid.save(rtn_dict_dg("nh3", nh3_data))
             time_count = 0
         time.sleep(1)
 
