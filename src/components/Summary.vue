@@ -4,6 +4,7 @@
             <v-flex mb-4>
                 <v-row justify="center">
                     <v-col cols="12" md="4">
+                        <v-skeleton-loader :loading="loading" type="card-heading, image">
                         <v-card>
                             <v-card-title class="text-uppercase">
                                 <span class="font-weight-light">cluster status</span>
@@ -12,8 +13,10 @@
                                 <cluster-status :online="online" :offline="offline" :lost="lost"></cluster-status>
                             </div>
                         </v-card>
+                        </v-skeleton-loader>
                     </v-col>
                     <v-col cols="12" md="4">
+                        <v-skeleton-loader :loading="loading" type="card-heading, image">
                         <v-card>
                             <v-card-title class="text-uppercase">
                                 <span class="font-weight-light">actuator status</span>
@@ -22,12 +25,15 @@
                                 <actuator-status :working="working" :pending="pending"></actuator-status>
                             </div>
                         </v-card>
+                        </v-skeleton-loader>
                     </v-col>
                 </v-row>
                 <v-row justify="center">
                     <v-col cols="12" md="8" v-for="device in all_devs" :key="device.id">
+                        <v-skeleton-loader :loading="loading" type="card">
                         <device-summary :id="device.device" :mode="device.status" :actuator_raw="device.actuator"
                                         :h2s="device.h2s" :nh3="device.nh3" :enabled="online_devs.includes(device.device)"></device-summary>
+                        </v-skeleton-loader>
                     </v-col>
                 </v-row>
             </v-flex>
@@ -43,7 +49,8 @@
     export default {
         data: () => ({
             timenow: 0,
-            summary: []
+            summary: [],
+            loading: true
         }),
         components: {
             "cluster-status": ClusterStatus,
@@ -94,6 +101,9 @@
             this.updatetime();
             this.$pouch.pull("summary", "http://localhost:5984/summary", {
                 live: true
+            });
+            this.$on("pouchdb-pull-change", function (){
+                this.loading = false;
             });
             setInterval(this.updatetime, 5000);
         },
