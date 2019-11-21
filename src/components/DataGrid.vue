@@ -154,7 +154,6 @@
             h2s_grid: function (val) {
                 let filter_time;
                 filter_time = new Date() / 1000 - 500;
-                console.log(filter_time);
                 this.h2s_collection = {
                     datasets: [
                         {
@@ -168,7 +167,6 @@
             nh3_grid: function (val) {
                 let filter_time;
                 filter_time = new Date() / 1000 - 500;
-                console.log(filter_time);
                 this.nh3_collection = {
                     datasets: [
                         {
@@ -186,17 +184,17 @@
             this.time_filter = new Date() / 1000;
             // Send all documents to the remote database, and stream changes in real-time. Note if you use filters you need to set them correctly for pouchdb and couchdb. You can set them for each direction separatly: options.push/options.pull. PouchDB might not need the same filter to push documents as couchdb to send the filtered requested documents.
             /*
-            this.$pouch.pull("datagrid", "http://localhost:5984/datagrid", {
+            this.$pouch.pull("datagrid", "https://brownsense.misaka.center/db/datagrid", {
               ...{ selector: this.db_selector },
               ...{ live: true }
             });
             */
-            this.$pouch.pull("summary_dup", "http://localhost:5984/summary",{
+            this.$pouch.pull("summary_dup", "https://brownsense.misaka.center/db/summary",{
                live:true
             });
-            this.db_datagrid = new PouchDB("http://localhost:5984/datagrid");
-            // this.db_summary = new PouchDB("http://localhost:5984/summary");
-            // this.$pouch.sync("dev_one", "http://localhost:5984/test");
+            this.db_datagrid = new PouchDB("https://brownsense.misaka.center/db/datagrid");
+            // this.db_summary = new PouchDB("https://brownsense.misaka.center/db/summary");
+            // this.$pouch.sync("dev_one", "https://brownsense.misaka.center/db/test");
             this.$on("pouchdb-pull-change", function(){
                 this.loading = false;
             });

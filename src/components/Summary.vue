@@ -99,7 +99,7 @@
         },
         created: function () {
             this.updatetime();
-            this.$pouch.pull("summary", "http://localhost:5984/summary", {
+            this.$pouch.pull("summary", "https://brownsense.misaka.center/db/summary", {
                 live: true
             });
             this.$on("pouchdb-pull-change", function (){

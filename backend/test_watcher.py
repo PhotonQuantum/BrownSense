@@ -9,7 +9,7 @@ import sys
 import json
 from enum import Enum
 
-server = Server("http://127.0.0.1:5984/")
+server = Server("https://brownsense.misaka.center/db")
 db_datagrid = server["datagrid"]
 db_command = server["command"]
 db_summary = server["summary"]
