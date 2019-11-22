@@ -102,7 +102,7 @@
             this.$pouch.pull("summary", "https://brownsense.misaka.center/db/summary", {
                 live: true
             });
-            this.$on("pouchdb-pull-change", function (){
+            this.$on("pouchdb-livefeed-ready", function (){
                 this.loading = false;
             });
             setInterval(this.updatetime, 5000);

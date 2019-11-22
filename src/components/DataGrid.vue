@@ -195,7 +195,7 @@
             this.db_datagrid = new PouchDB("https://brownsense.misaka.center/db/datagrid");
             // this.db_summary = new PouchDB("https://brownsense.misaka.center/db/summary");
             // this.$pouch.sync("dev_one", "https://brownsense.misaka.center/db/test");
-            this.$on("pouchdb-pull-change", function(){
+            this.$on("pouchdb-livefeed-ready", function(){
                 this.loading = false;
             });
             this.$on("pouchdb-db-created", function () {
