@@ -3,7 +3,7 @@ from concurrent.futures.thread import ThreadPoolExecutor
 import time
 from db import Remote
 from hardware import Sensor, Actuator
-from utils import GracefulKiller
+from utils import GracefulKiller, wait_network_online
 import config as cfg
 import argparse
 
@@ -12,6 +12,7 @@ override = 0
 
 def main(device_id, graceful):
     killer = GracefulKiller()
+    wait_network_online()
     remote = Remote(cfg.couchdb["host"], device_id, callback, graceful)
     sensor = Sensor(cfg.sensor_ports, cfg.debug)
     actuator = Actuator(cfg.relay_port, cfg.debug)
