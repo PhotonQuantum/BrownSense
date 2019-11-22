@@ -119,7 +119,7 @@ def i2c_watcher(queue):
             queue.put({"func": acturator_trigger, "params": [False]})
             print("[i2c_watcher] event triggered")
         time_count += 1
-        if time_count % 30 == 0:
+        if time_count % 9 == 0:
             print("report sensor data")
             db_datagrid.save(rtn_dict_dg("h2s", i2c_data))
             db_datagrid.save(rtn_dict_dg("nh3", nh3_data))
