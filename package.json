@@ -5,9 +5,11 @@
   "scripts": {
     "serve": "vue-cli-service serve",
     "build": "vue-cli-service build",
+    "dev-build": "vue-cli-service build --mode development",
     "lint": "vue-cli-service lint"
   },
   "dependencies": {
+    "babel-polyfill": "^6.26.0",
     "chart.js": "^2.8.0",
     "core-js": "^3.1.2",
     "pouch-vue": "^0.3.4",
@@ -23,6 +25,7 @@
     "vuex": "^3.0.1"
   },
   "devDependencies": {
+    "@babel/preset-env": "^7.7.1",
     "@vue/cli-plugin-babel": "^4.0.0",
     "@vue/cli-plugin-eslint": "^4.0.0",
     "@vue/cli-service": "^4.0.0",
