@@ -24,7 +24,7 @@ def wait_network_online():
             return
         except (requests.HTTPError, requests.ConnectionError) as e:
             retry_count += 1
-            if retry_count > 20:
+            if retry_count > 30:
                 time.sleep(10)
             elif retry_count > 20:
                 time.sleep(5)
