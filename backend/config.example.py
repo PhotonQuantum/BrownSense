@@ -1,10 +1,12 @@
 #!/usr/bin/python3
+device_id = 1
 couchdb = {
     "host": "https://brownsense.misaka.center/db",
     "username": "***",
     "password": "***"
 }
 debug = True
+graceful = True
 sensor_ports = [1, 2]
 relay_port = 1
 limit = {

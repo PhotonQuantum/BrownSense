@@ -10,10 +10,10 @@ import argparse
 override = 0
 
 
-def main(device_id, graceful):
+def main():
     killer = GracefulKiller()
     wait_network_online()
-    remote = Remote(cfg.couchdb["host"], device_id, callback, graceful)
+    remote = Remote(cfg.couchdb["host"], cfg.device_id, callback, cfg.graceful)
     sensor = Sensor(cfg.sensor_ports, cfg.debug)
     actuator = Actuator(cfg.relay_port, cfg.debug)
     with ThreadPoolExecutor() as executor:
@@ -61,10 +61,4 @@ def report_thread(remote, sensor, actuator, killer):
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description='IoT server for BrownSense.')
-    parser.add_argument('id', metavar='id', type=int, help='device id')
-    parser.add_argument('--no-graceful', dest='graceful', action='store_const',
-                        const=False, default=True,
-                        help='don\'t inform the backend when shutdown')
-    args = parser.parse_args()
-    main(args.id, args.graceful)
+    main()
