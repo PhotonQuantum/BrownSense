@@ -12,7 +12,7 @@ class Remote:
 
     def __init__(self, url, device_id, callback, graceful=True):
         self._db = Database(url, ["summary", "datagrid", "command"])
-        self._device_id = device_id
+        self._device_id = str(device_id)
         self._graceful = graceful
         self._callback = callback
         self._dg_queue = SimpleQueue()
