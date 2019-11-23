@@ -21,7 +21,7 @@ class Remote:
         self._executor.submit(self._cmd_watcher_thread)
         print("[+] remote init complete")
 
-    def __del__(self):
+    def shutdown(self):
         print("[.] terminating remote objects")
         if self._graceful:
             self.report_summary("offline", [0, 0], False)
