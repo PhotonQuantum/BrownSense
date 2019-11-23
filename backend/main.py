@@ -16,8 +16,6 @@ def main(device_id, graceful):
     remote = Remote(cfg.couchdb["host"], device_id, callback, graceful)
     sensor = Sensor(cfg.sensor_ports, cfg.debug)
     actuator = Actuator(cfg.relay_port, cfg.debug)
-    remote.report_summary("auto", sensor.reading, actuator.closed)
-    remote.report_summary("offline", [0, 0], False)
     with ThreadPoolExecutor() as executor:
         executor.submit(report_thread, remote, sensor, actuator, killer)
 
