@@ -135,7 +135,8 @@
                         type: "h2s",
                         time: {$gt: this.time_filter - 1000}
                     },
-                    sort: [{time: "asc"}]
+                    sort: [{time: "desc"}],
+                    limit: 200
                 }
             },
             nh3_grid() {
@@ -146,7 +147,8 @@
                         type: "nh3",
                         time: {$gt: this.time_filter - 1000}
                     },
-                    sort: [{time: "asc"}]
+                    sort: [{time: "desc"}],
+                    limit: 200
                 }
             }
         },
