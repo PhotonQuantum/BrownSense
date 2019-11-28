@@ -1,5 +1,5 @@
 #!/usr/bin/python3
-from couchdb import Server, Session
+from cloudant import CouchDB
 from concurrent.futures.thread import ThreadPoolExecutor
 from uuid import uuid4
 from queue import SimpleQueue
@@ -10,8 +10,8 @@ import time
 class Remote:
     _terminated = False
 
-    def __init__(self, url, device_id, callback, graceful=True):
-        self._db = Database(url, ["summary", "datagrid", "command"])
+    def __init__(self, server, device_id, callback, graceful=True):
+        self._db = Database(server["host"], server["username"], server["password"], ["summary", "datagrid", "command"])
         self._device_id = str(device_id)
         self._graceful = graceful
         self._callback = callback
@@ -39,7 +39,7 @@ class Remote:
             doc = queue.get()
             if doc:
                 print(f"[G] {doc}")
-                self._db.dbs["datagrid"].save(doc)
+                self._db.dbs["datagrid"].create_document(doc)
             else:
                 print("[-] dg_submit_thread terminated")
                 break
@@ -57,7 +57,7 @@ class Remote:
                "h2s": sensor[0], "nh3": sensor[1],
                "actuator": actuator}
         print(f"[S] {doc}")
-        self._db.update_doc("summary", {"selector": {"device": self._device_id}}, doc)
+        self._db.update_doc("summary", {"device": self._device_id}, doc)
 
     def report_datagrid(self, sensor):
         doc_1 = {"_id": uuid4().hex, "time": time.time(), "device": self._device_id,
@@ -73,17 +73,18 @@ class Database:
     _delays = [0.5]
     dbs = {}
 
-    def __init__(self, url, dbs):
-        self._session = Session(timeout=3, retry_delays=self._delays)
-        self._server = Server(url, session=self._session)
+    def __init__(self, url, username, password, dbs):
+        self._server = CouchDB(username, password, url=url, auto_renew=True, timeout=10, connect=True)
         for db in dbs:
             self.dbs[db] = self._server[db]
 
     def update_doc(self, db, mango_query, data):
-        query = list(self.dbs[db].find(mango_query))
-        if query:
-            data["_id"] = query[0].id
-            data["_rev"] = query[0].rev
+        query = self.dbs[db].get_query_result(mango_query)
+        if query[0][0]:
+            doc = self.dbs[db][query[0][0]["_id"]]
+            for item in data:
+                doc[item] = data[item]
+            doc.save()
         else:
             data["_id"] = uuid4().hex
-        self.dbs[db].save(data)
+            self.dbs[db].create_document(data)

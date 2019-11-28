@@ -15,7 +15,7 @@ def main():
     wait_network_online()
     sensor = Sensor(cfg.sensor_ports, cfg.debug)
     actuator = Actuator(cfg.relay_port, cfg.debug)
-    with ThreadPoolExecutor() as executor, Remote(cfg.couchdb["host"], cfg.device_id, callback, cfg.graceful) as remote:
+    with ThreadPoolExecutor() as executor, Remote(cfg.couchdb, cfg.device_id, callback, cfg.graceful) as remote:
         executor.submit(report_thread, remote, sensor, actuator, killer)
 
         sensor_stream = sensor.stream()
