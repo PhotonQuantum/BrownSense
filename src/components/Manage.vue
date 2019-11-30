@@ -44,10 +44,12 @@
                             <v-toolbar color="primary" dark elevation="0">
                                 <v-toolbar-title class="font-weight-light">Database Operation</v-toolbar-title>
                             </v-toolbar>
-                            <v-card-actions>
-                                <v-btn @click="clean_datagrid()">Clean Datagrid</v-btn>
-                                <v-btn @click="compact_database()">Compact Database</v-btn>
+                            <v-skeleton-loader type="list-item" :loading="loading">
+                                <v-card-actions>
+                                    <v-btn @click="clean_datagrid()">Clean Datagrid</v-btn>
+                                    <v-btn @click="compact_database()">Compact Database</v-btn>
                             </v-card-actions>
+                            </v-skeleton-loader>
                         </v-card>
                     </v-col>
                     <v-dialog v-model="token_dialog" max-width="400">
