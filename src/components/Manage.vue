@@ -338,27 +338,21 @@
                         }, "https://brownsense.misaka.center/db/datagrid");
                         this.working_value = Math.floor(counter / total * 100);
                         this.working_msg = this.working_value;
-                        console.log(datalist.rows);
                         datalist.rows.slice(0, -1).forEach((row) => {
                             if (!valid_devices.includes(row.doc.device) && row.doc._id !== "_design/my_validation_function") {
                                 purge_list[row.doc._id] = [row.doc._rev];
                             }
                         });
-                        console.log(datalist.rows);
                         const res = await axios.post('/db/datagrid/_purge', purge_list);
                         purge_list = {};
                         startkey = datalist.rows[datalist.rows.length - 1].id;
                         counter += 100;
                         finished = datalist.rows.length < 101;
-                        console.log(datalist.rows);
                     }
-                    console.log(datalist.rows);
                     const row = datalist.rows[datalist.rows.length - 1];
-                    console.log(row);
                     if (!valid_devices.includes(row.doc.device) && row.doc._id !== "_design/my_validation_function") {
                         purge_list[row.doc._id] = [row.doc._rev];
                         const res = await axios.post('/db/datagrid/_purge', purge_list);
-                        console.log(res);
                     }
                 }
                 this.working_title = "complete";
