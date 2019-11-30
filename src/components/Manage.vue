@@ -267,7 +267,8 @@
                 this.delete_snackbar = false;
                 const summary_item = await this.$pouch.find({selector: {device: this.pending_delete.name.substring(7)}}, "https://brownsense.misaka.center/db/summary");
                 if (summary_item.docs.length > 0) {
-                    await this.$pouch.remove(summary_item.docs[0], undefined, "https://brownsense.misaka.center/db/summary");
+                    const purge_list = {};
+                    purge_list[summary_item.docs[0]._id] = [summary_item.docs[0]._rev];
                 }
                 await this.$pouch.remove(this.pending_delete, undefined, "https://brownsense.misaka.center/db/_users");
                 this.pending_delete = {};
