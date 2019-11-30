@@ -120,11 +120,11 @@
                                 </v-card-actions>
                             </v-card>
                         </v-dialog>
-                        <v-snackbar timeout="3000" color="error" v-model="error_snackbar">
+                        <v-snackbar :timeout='3000' color="error" v-model="error_snackbar">
                             {{ error_snackbar_message }}
                             <v-btn text @click="error_snackbar = false">Close</v-btn>
                         </v-snackbar>
-                        <v-snackbar timeout="3000" v-model="delete_snackbar" @input="permanent_delete()">
+                        <v-snackbar :timeout='3000' v-model="delete_snackbar" @input="permanent_delete()">
                             Deleting {{ pending_delete.name }} ...
                             <v-btn color="pink" text @click="cancel_delete()">Undo</v-btn>
                             <v-btn color="pink" text @click="permanent_delete()">Close</v-btn>
