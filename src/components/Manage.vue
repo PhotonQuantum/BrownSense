@@ -8,31 +8,34 @@
                             <v-toolbar color="primary" dark>
                                 <v-toolbar-title class="font-weight-light">Device Management</v-toolbar-title>
                                 <v-spacer/>
-                                <v-btn outlined class="font-weight-light"
+                                <v-btn outlined class="font-weight-light" :disabled="loading"
                                        @click="()=>{this.new_device_name='';this.add_dialog=true}">Add Device
                                 </v-btn>
                             </v-toolbar>
                             <v-card-text>
-                                <v-card outlined>
-                                    <v-list class="pa-0">
-                                        <div class="ma-0 pa-0" v-for="user in users" :key="user._id">
-                                            <v-list-item :disabled="user.name === pending_delete.name">
-                                                <v-overlay color="grey lighten-2" opacity="0.5" absolute :value="user.name === pending_delete.name">
-                                                </v-overlay>
-                                                <v-list-item-content>
-                                                    <v-list-item-title
-                                                            v-text="'Device #' + user.name.substring(7)"></v-list-item-title>
-                                                </v-list-item-content>
-                                                <v-list-item-action>
-                                                    <v-btn icon @click="delete_device(user)">
-                                                        <v-icon>mdi-delete</v-icon>
-                                                    </v-btn>
-                                                </v-list-item-action>
-                                            </v-list-item>
-                                            <v-divider v-show="user !== users[users.length-1]"></v-divider>
-                                        </div>
-                                    </v-list>
-                                </v-card>
+                                <v-skeleton-loader type="list-item, list-item, list-item" :loading="loading">
+                                    <v-card outlined>
+                                        <v-list class="pa-0">
+                                            <div class="ma-0 pa-0" v-for="user in users" :key="user._id">
+                                                <v-list-item :disabled="user.name === pending_delete.name">
+                                                    <v-overlay color="white" opacity="1" absolute
+                                                               :value="user.name === pending_delete.name">
+                                                    </v-overlay>
+                                                    <v-list-item-content>
+                                                        <v-list-item-title
+                                                                v-text="'Device #' + user.name.substring(7)"></v-list-item-title>
+                                                    </v-list-item-content>
+                                                    <v-list-item-action>
+                                                        <v-btn icon @click="delete_device(user)">
+                                                            <v-icon>mdi-delete</v-icon>
+                                                        </v-btn>
+                                                    </v-list-item-action>
+                                                </v-list-item>
+                                                <v-divider v-show="user !== users[users.length-1]"></v-divider>
+                                            </div>
+                                        </v-list>
+                                    </v-card>
+                                </v-skeleton-loader>
                             </v-card-text>
                         </v-card>
                         <v-dialog v-model="token_dialog" max-width="400">
@@ -117,12 +120,12 @@
                                 </v-card-actions>
                             </v-card>
                         </v-dialog>
-                        <v-snackbar color="error" v-model="error_snackbar">
+                        <v-snackbar timeout="3000" color="error" v-model="error_snackbar">
                             {{ error_snackbar_message }}
                             <v-btn text @click="error_snackbar = false">Close</v-btn>
                         </v-snackbar>
-                        <v-snackbar v-model="delete_snackbar" @input="permanent_delete()">
-                            Device {{ pending_delete.name }} deleted.
+                        <v-snackbar timeout="3000" v-model="delete_snackbar" @input="permanent_delete()">
+                            Deleting {{ pending_delete.name }} ...
                             <v-btn color="pink" text @click="cancel_delete()">Undo</v-btn>
                             <v-btn color="pink" text @click="permanent_delete()">Close</v-btn>
                         </v-snackbar>
@@ -152,7 +155,8 @@
                 add_dialog: false,
                 new_device_name: "",
                 token_dialog: false,
-                new_device_token: ""
+                new_device_token: "",
+                loading: true
             }
         },
         pouch: {
@@ -172,8 +176,14 @@
                     this.login_dialog = true;
                 } else {
                     this.db_user = new PouchDB("https://brownsense.misaka.center/db/_users");
+                    this.loading = false;
                 }
             });
+        },
+        destroyed() {
+            if (Object.keys(this.pending_delete).length !== 0) {
+                this.permanent_delete();
+            }
         },
         methods: {
             show_error(msg) {
@@ -250,6 +260,7 @@
                         } else {
                             this.login_dialog = false;
                             this.db_user = new PouchDB("https://brownsense.misaka.center/db/_users");
+                            this.loading = false;
                         }
                     })
                 })
