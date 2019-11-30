@@ -5,34 +5,35 @@
                 <v-row justify="center">
                     <v-col cols="12" md="4">
                         <v-skeleton-loader :loading="loading" type="card-heading, image">
-                        <v-card>
-                            <v-card-title class="text-uppercase">
-                                <span class="font-weight-light">cluster status</span>
-                            </v-card-title>
-                            <div class="graph">
-                                <cluster-status :online="online" :offline="offline" :lost="lost"></cluster-status>
-                            </div>
-                        </v-card>
+                            <v-card>
+                                <v-card-title class="text-uppercase">
+                                    <span class="font-weight-light">cluster status</span>
+                                </v-card-title>
+                                <div class="graph">
+                                    <cluster-status :online="online" :offline="offline" :lost="lost"></cluster-status>
+                                </div>
+                            </v-card>
                         </v-skeleton-loader>
                     </v-col>
                     <v-col cols="12" md="4">
                         <v-skeleton-loader :loading="loading" type="card-heading, image">
-                        <v-card>
-                            <v-card-title class="text-uppercase">
-                                <span class="font-weight-light">actuator status</span>
-                            </v-card-title>
-                            <div class="graph">
-                                <actuator-status :working="working" :pending="pending"></actuator-status>
-                            </div>
-                        </v-card>
+                            <v-card>
+                                <v-card-title class="text-uppercase">
+                                    <span class="font-weight-light">actuator status</span>
+                                </v-card-title>
+                                <div class="graph">
+                                    <actuator-status :working="working" :pending="pending"></actuator-status>
+                                </div>
+                            </v-card>
                         </v-skeleton-loader>
                     </v-col>
                 </v-row>
                 <v-row justify="center">
                     <v-col cols="12" md="8" v-for="device in all_devs" :key="device.id">
                         <v-skeleton-loader :loading="loading" type="card">
-                        <device-summary :id="device.device" :mode="device.status" :actuator_raw="device.actuator"
-                                        :h2s="device.h2s" :nh3="device.nh3" :enabled="online_devs.includes(device.device)"></device-summary>
+                            <device-summary :id="device.device" :mode="device.status" :actuator_raw="device.actuator"
+                                            :h2s="device.h2s" :nh3="device.nh3"
+                                            :enabled="online_devs.includes(device.device)"></device-summary>
                         </v-skeleton-loader>
                     </v-col>
                 </v-row>
@@ -67,7 +68,7 @@
             online_devs: function () {
                 return this.summary.filter(
                     x => x.status !== "offline" && x.time > this.timenow - 10
-                ).map(x=>x.device);
+                ).map(x => x.device);
             },
             online: function () {
                 return this.online_devs.length;
@@ -99,16 +100,17 @@
         },
         created: function () {
             this.updatetime();
-            this.$pouch.pull("summary", "https://brownsense.misaka.center/db/summary", {
-                live: true
-            });
-            this.$on("pouchdb-livefeed-ready", function (){
+            if (!this.$store.state.summary_pulled) {
+                this.$pouch.pull("summary", "https://brownsense.misaka.center/db/summary", {
+                    live: true,
+                    retry: true
+                });
+                this.$store.commit("set_summary_pulled", true)
+            }
+            this.$on("pouchdb-livefeed-ready", function () {
                 this.loading = false;
             });
             setInterval(this.updatetime, 5000);
-        },
-        destroyed: function () {
-            this.$pouch.close("summary");
         }
     };
 </script>

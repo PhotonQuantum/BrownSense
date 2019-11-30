@@ -5,49 +5,51 @@
                 <v-row justify="center">
                     <v-col cols="12" md="8">
                         <v-skeleton-loader type="list-item, image" :loading="loading">
-                <v-card>
-                    <v-card-title>
-                        <v-list-item two-line>
-                            <v-list-item-content>
-                                <v-list-item-subtitle>Hydrogen Sulfide</v-list-item-subtitle>
-                                <v-list-item-title class="headline">{{ this.this_device.h2s }} PPM</v-list-item-title>
-                            </v-list-item-content>
-                        </v-list-item>
-                    </v-card-title>
-                    <v-card-text>
-                        <div class="grey lighten-4 pa-6">
-                        <line-chart
-                                class="sensor-graph"
-                                :chart-data="h2s_collection"
-                                :options="chart_options"
-                                v-if="loaded"
-                        ></line-chart>
-                        </div>
-                    </v-card-text>
-                </v-card></v-skeleton-loader>
+                            <v-card>
+                                <v-card-title>
+                                    <v-list-item two-line>
+                                        <v-list-item-content>
+                                            <v-list-item-subtitle>Hydrogen Sulfide</v-list-item-subtitle>
+                                            <v-list-item-title class="headline">{{ this.this_device.h2s }} PPM
+                                            </v-list-item-title>
+                                        </v-list-item-content>
+                                    </v-list-item>
+                                </v-card-title>
+                                <v-card-text>
+                                    <div class="grey lighten-4 pa-6">
+                                        <line-chart
+                                                class="sensor-graph"
+                                                :chart-data="h2s_collection"
+                                                :options="chart_options"
+                                        ></line-chart>
+                                    </div>
+                                </v-card-text>
+                            </v-card>
+                        </v-skeleton-loader>
                     </v-col>
                     <v-col cols="12" md="8">
                         <v-skeleton-loader type="list-item, image" :loading="loading">
-                <v-card>
-                    <v-card-title>
-                        <v-list-item two-line>
-                            <v-list-item-content>
-                                <v-list-item-subtitle>Ammonia</v-list-item-subtitle>
-                                <v-list-item-title class="headline">{{ this.this_device.nh3 }} PPM</v-list-item-title>
-                            </v-list-item-content>
-                        </v-list-item>
-                    </v-card-title>
-                    <v-card-text>
-                        <div class="grey lighten-4 pa-6">
-                            <line-chart
-                                    class="sensor-graph"
-                                    :chart-data="nh3_collection"
-                                    :options="chart_options"
-                                    v-if="loaded"
-                            ></line-chart>
-                        </div>
-                    </v-card-text>
-                </v-card></v-skeleton-loader>
+                            <v-card>
+                                <v-card-title>
+                                    <v-list-item two-line>
+                                        <v-list-item-content>
+                                            <v-list-item-subtitle>Ammonia</v-list-item-subtitle>
+                                            <v-list-item-title class="headline">{{ this.this_device.nh3 }} PPM
+                                            </v-list-item-title>
+                                        </v-list-item-content>
+                                    </v-list-item>
+                                </v-card-title>
+                                <v-card-text>
+                                    <div class="grey lighten-4 pa-6">
+                                        <line-chart
+                                                class="sensor-graph"
+                                                :chart-data="nh3_collection"
+                                                :options="chart_options"
+                                        ></line-chart>
+                                    </div>
+                                </v-card-text>
+                            </v-card>
+                        </v-skeleton-loader>
                     </v-col>
                 </v-row>
             </v-flex>
@@ -63,7 +65,6 @@
     export default {
         mixins: [VueScreenSize.VueScreenSizeMixin],
         data: () => ({
-            loaded: false,
             loading: true,
             h2s_collection: null,
             nh3_collection: null,
@@ -71,8 +72,8 @@
         }),
         components: {LineChart},
         props: ["device"],
-        computed:{
-            chart_options: function() {
+        computed: {
+            chart_options: function () {
                 return {
                     maintainAspectRatio: false,
                     legend: {
@@ -107,7 +108,7 @@
                     }
                 }
             }
-            },
+        },
         pouch: {
             /*
             dev_one() {
@@ -120,7 +121,7 @@
             */
             this_device() {
                 return {
-                    database: "summary_dup",
+                    database: "summary",
                     selector: {
                         device: this.device
                     },
@@ -191,21 +192,19 @@
               ...{ live: true }
             });
             */
-            this.$pouch.pull("summary_dup", "https://brownsense.misaka.center/db/summary",{
-               live:true
-            });
+            if (!this.$store.state.summary_pulled) {
+                this.$pouch.pull("summary", "https://brownsense.misaka.center/db/summary", {
+                    live: true,
+                    retry: true
+                });
+                this.$store.commit("set_summary_pulled", true)
+            }
             this.db_datagrid = new PouchDB("https://brownsense.misaka.center/db/datagrid");
             // this.db_summary = new PouchDB("https://brownsense.misaka.center/db/summary");
             // this.$pouch.sync("dev_one", "https://brownsense.misaka.center/db/test");
-            this.$on("pouchdb-livefeed-ready", function(){
+            this.$on("pouchdb-livefeed-ready", function () {
                 this.loading = false;
             });
-            this.$on("pouchdb-db-created", function () {
-                this.loaded = true;
-            });
-        },
-        destroyed: function() {
-            this.$pouch.close("summary_dup")
         }
     };
 </script>
