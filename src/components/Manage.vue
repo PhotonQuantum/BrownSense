@@ -269,6 +269,7 @@
                 if (summary_item.docs.length > 0) {
                     const purge_list = {};
                     purge_list[summary_item.docs[0]._id] = [summary_item.docs[0]._rev];
+                    await axios.post('/db/summary/_purge', purge_list);
                 }
                 await this.$pouch.remove(this.pending_delete, undefined, "https://brownsense.misaka.center/db/_users");
                 this.pending_delete = {};
