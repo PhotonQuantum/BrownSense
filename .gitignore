@@ -157,3 +157,6 @@ dmypy.json
 .pyre/
 
 config.py
+/dist.tar.gz
+/dist-remote
+/dev.sh
