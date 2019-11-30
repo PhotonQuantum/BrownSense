@@ -160,3 +160,4 @@ config.py
 /dist.tar.gz
 /dist-remote
 /dev.sh
+/prod.sh
