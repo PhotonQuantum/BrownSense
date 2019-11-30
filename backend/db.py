@@ -1,6 +1,7 @@
 #!/usr/bin/python3
 from cloudant import CouchDB
 from concurrent.futures.thread import ThreadPoolExecutor
+import requests
 from uuid import uuid4
 from queue import SimpleQueue
 import json
@@ -39,7 +40,15 @@ class Remote:
             doc = queue.get()
             if doc:
                 print(f"[G] {doc}")
-                self._db.dbs["datagrid"].create_document(doc)
+                try:
+                    self._db.dbs["datagrid"].create_document(doc)
+                except requests.HTTPError as e:
+                    if e.response.status_code == 401:
+                        print("UnauthorizedError. Maybe device_id is not a user in db?")
+                    elif e.response.status_code == 403:
+                        print("ForbiddenError. Wrong device_id.")
+                    else:
+                        raise
             else:
                 print("[-] dg_submit_thread terminated")
                 break
@@ -57,7 +66,15 @@ class Remote:
                "h2s": sensor[0], "nh3": sensor[1],
                "actuator": actuator}
         print(f"[S] {doc}")
-        self._db.update_doc("summary", {"device": self._device_id}, doc)
+        try:
+            self._db.update_doc("summary", {"device": self._device_id}, doc)
+        except requests.HTTPError as e:
+            if e.response.status_code == 401:
+                print("UnauthorizedError. Maybe device_id is not a user in db?")
+            elif e.response.status_code == 403:
+                print("ForbiddenError. Wrong device_id.")
+            else:
+                raise
 
     def report_datagrid(self, sensor):
         doc_1 = {"_id": uuid4().hex, "time": time.time(), "device": self._device_id,
@@ -80,11 +97,15 @@ class Database:
 
     def update_doc(self, db, mango_query, data):
         query = self.dbs[db].get_query_result(mango_query)
-        if query[0][0]:
+        if query[0]:
             doc = self.dbs[db][query[0][0]["_id"]]
             for item in data:
                 doc[item] = data[item]
             doc.save()
         else:
-            data["_id"] = uuid4().hex
-            self.dbs[db].create_document(data)
+            try:
+                data["_id"] = uuid4().hex
+                self.dbs[db].create_document(data)
+            except requests.HTTPError as e:
+                raise
+
