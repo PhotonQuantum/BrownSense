@@ -14,7 +14,7 @@
                             </v-toolbar>
                             <v-card-text>
                                 <v-skeleton-loader type="list-item, list-item, list-item" :loading="loading">
-                                    <v-card outlined>
+                                    <v-card outlined :disabled="deleting">
                                         <v-list class="pa-0">
                                             <div class="ma-0 pa-0" v-for="user in users" :key="user._id">
                                                 <v-list-item :disabled="user.name === pending_delete.name">
@@ -165,6 +165,7 @@
     export default {
         data() {
             return {
+                deleting: false,
                 working: false,
                 working_indeterminate: false,
                 working_value: 0,
@@ -267,6 +268,7 @@
                 }
             },
             async permanent_delete() {
+                this.deleting = true;
                 this.delete_snackbar = false;
                 const summary_item = await this.dbs["summary"].find({selector: {device: this.pending_delete.name.substring(7)}});
                 if (summary_item.docs.length > 0) {
@@ -274,6 +276,7 @@
                 }
                 await this.dbs["users"].remove(this.pending_delete);
                 this.pending_delete = {};
+                this.deleting = false;
             },
             async delete_device(user) {
                 if (Object.keys(this.pending_delete).length !== 0) {
