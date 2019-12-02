@@ -50,8 +50,8 @@
     export default {
         data: () => ({
             timenow: 0,
-            summary: [],
-            loading: true
+            loading: true,
+            db_summary: null
         }),
         components: {
             "cluster-status": ClusterStatus,
@@ -59,35 +59,67 @@
             "device-summary": DeviceSummary
         },
         pouch: {
-            summary: {}
+            summary() {
+                return {
+                    database: this.db_summary,
+                    selector: {
+                        device: {$gt: 0}
+                    },
+                    limit: 100
+                }
+            }
         },
         computed: {
             all_devs: function () {
-                return this.summary.filter(x => x.device !== undefined).slice().sort((a, b) => a.device - b.device);
+                if (this.summary !== null) {
+                    return this.summary.filter(x => x.device !== undefined).slice().sort((a, b) => a.device - b.device);
+                } else {
+                    return [];
+                }
             },
             online_devs: function () {
-                return this.summary.filter(
-                    x => x.status !== "offline" && x.time > this.timenow - 10
-                ).map(x => x.device);
+                if (this.summary !== null) {
+                    return this.summary.filter(
+                        x => x.status !== "offline" && x.time > this.timenow - 10
+                    ).map(x => x.device);
+                } else {
+                    return [];
+                }
             },
             online: function () {
-                return this.online_devs.length;
+                if (this.summary !== null) {
+                    return this.online_devs.length;
+                } else {
+                    return 0;
+                }
             },
             lost: function () {
-                return this.summary.filter(
-                    x => x.status !== "offline" && x.time <= this.timenow - 10
-                ).length;
+                if (this.summary !== null) {
+                    return this.summary.filter(
+                        x => x.status !== "offline" && x.time <= this.timenow - 10
+                    ).length;
+                } else {
+                    return 0;
+                }
             },
             offline: function () {
-                return this.summary.filter(x => x.status === "offline").length;
+                if (this.summary !== null) {
+                    return this.summary.filter(x => x.status === "offline").length;
+                } else {
+                    return 0;
+                }
             },
             working: function () {
-                return this.summary.filter(
-                    x =>
-                        x.status !== "offline" &&
-                        x.time > this.timenow - 10 &&
-                        x.actuator === true
-                ).length;
+                if (this.summary !== null) {
+                    return this.summary.filter(
+                        x =>
+                            x.status !== "offline" &&
+                            x.time > this.timenow - 10 &&
+                            x.actuator === true
+                    ).length;
+                } else {
+                    return 0;
+                }
             },
             pending: function () {
                 return this.online - this.working;
@@ -100,13 +132,7 @@
         },
         created: function () {
             this.updatetime();
-            if (!this.$store.state.summary_pulled) {
-                this.$pouch.pull("summary", "https://brownsense.misaka.center/db/summary", {
-                    live: true,
-                    retry: true
-                });
-                this.$store.commit("set_summary_pulled", true)
-            }
+            this.db_summary = new PouchDB("https://brownsense.misaka.center/db/summary");
             this.$on("pouchdb-livefeed-ready", function () {
                 this.loading = false;
             });

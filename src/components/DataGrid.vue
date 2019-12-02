@@ -68,7 +68,8 @@
             loading: true,
             h2s_collection: null,
             nh3_collection: null,
-            time_filter: -1
+            time_filter: -1,
+            db_summary: null
         }),
         components: {LineChart},
         props: ["device"],
@@ -121,7 +122,7 @@
             */
             this_device() {
                 return {
-                    database: "summary",
+                    database: this.db_summary,
                     selector: {
                         device: this.device
                     },
@@ -185,22 +186,8 @@
         created: function () {
             this.loaded = false;
             this.time_filter = new Date() / 1000;
-            // Send all documents to the remote database, and stream changes in real-time. Note if you use filters you need to set them correctly for pouchdb and couchdb. You can set them for each direction separatly: options.push/options.pull. PouchDB might not need the same filter to push documents as couchdb to send the filtered requested documents.
-            /*
-            this.$pouch.pull("datagrid", "https://brownsense.misaka.center/db/datagrid", {
-              ...{ selector: this.db_selector },
-              ...{ live: true }
-            });
-            */
-            if (!this.$store.state.summary_pulled) {
-                this.$pouch.pull("summary", "https://brownsense.misaka.center/db/summary", {
-                    live: true,
-                    retry: true
-                });
-                this.$store.commit("set_summary_pulled", true)
-            }
             this.db_datagrid = new PouchDB("https://brownsense.misaka.center/db/datagrid");
-            // this.db_summary = new PouchDB("https://brownsense.misaka.center/db/summary");
+            this.db_summary = new PouchDB("https://brownsense.misaka.center/db/summary");
             // this.$pouch.sync("dev_one", "https://brownsense.misaka.center/db/test");
             this.$on("pouchdb-livefeed-ready", function () {
                 this.loading = false;
