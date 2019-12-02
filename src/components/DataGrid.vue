@@ -58,6 +58,7 @@
 </template>
 
 <script>
+    import { mapState } from 'vuex';
     import LineChart from "./LineChart.js";
     import PouchDB from 'pouchdb-browser';
     import VueScreenSize from 'vue-screen-size';
@@ -69,11 +70,13 @@
             h2s_collection: null,
             nh3_collection: null,
             time_filter: -1,
-            db_summary: null
         }),
         components: {LineChart},
         props: ["device"],
         computed: {
+            ... mapState([
+                "dbs"
+            ]),
             chart_options: function () {
                 return {
                     maintainAspectRatio: false,
@@ -122,7 +125,7 @@
             */
             this_device() {
                 return {
-                    database: this.db_summary,
+                    database: this.dbs["summary"],
                     selector: {
                         device: this.device
                     },
@@ -131,7 +134,7 @@
             },
             h2s_grid() {
                 return {
-                    database: this.db_datagrid,
+                    database: this.dbs["datagrid"],
                     selector: {
                         device: this.device,
                         type: "h2s",
@@ -143,7 +146,7 @@
             },
             nh3_grid() {
                 return {
-                    database: this.db_datagrid,
+                    database: this.dbs["datagrid"],
                     selector: {
                         device: this.device,
                         type: "nh3",
@@ -186,9 +189,6 @@
         created: function () {
             this.loaded = false;
             this.time_filter = new Date() / 1000;
-            this.db_datagrid = new PouchDB("https://brownsense.misaka.center/db/datagrid");
-            this.db_summary = new PouchDB("https://brownsense.misaka.center/db/summary");
-            // this.$pouch.sync("dev_one", "https://brownsense.misaka.center/db/test");
             this.$on("pouchdb-livefeed-ready", function () {
                 this.loading = false;
             });

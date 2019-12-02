@@ -158,6 +158,7 @@
 
 <script>
     import axios from 'axios'
+    import { mapState } from 'vuex'
     import PouchDB from 'pouchdb-browser'
     import uuid4 from 'uuid/v4'
 
@@ -176,7 +177,6 @@
                 login_dialog: false,
                 error_snackbar: false,
                 error_snackbar_message: "",
-                db_user: null,
                 pending_delete: {},
                 delete_snackbar: false,
                 add_dialog: false,
@@ -186,10 +186,13 @@
                 loading: true
             }
         },
+        computed: mapState([
+            "dbs"
+        ]),
         pouch: {
             users() {
                 return {
-                    database: this.db_user,
+                    database: this.dbs["users"],
                     selector: {
                         name: {$regex: "device_.*"}
                     },
@@ -202,7 +205,7 @@
                 if (data.data.userCtx.name !== "admin") {
                     this.login_dialog = true;
                 } else {
-                    this.db_user = new PouchDB("https://brownsense.misaka.center/db/_users");
+                    this.$store.commit("add_db", {name: "users", instance: new PouchDB("https://brownsense.misaka.center/db/_users")});
                     this.loading = false;
                 }
             });
@@ -222,7 +225,7 @@
                 this.creating_device = true;
                 let create_user = false;
                 try {
-                    const result = await this.$pouch.get("org.couchdb.user:" + new_device, undefined, "https://brownsense.misaka.center/db/_users");
+                    const result = await this.dbs["users"].get("org.couchdb.user:" + new_device);
                 } catch {
                     create_user = true;
                 }
@@ -246,13 +249,13 @@
                         "actuator": false
                     };
                     try {
-                        await this.$pouch.put(new_user, undefined, "https://brownsense.misaka.center/db/_users");
-                        await this.$pouch.put(new_summary, undefined, "https://brownsense.misaka.center/db/summary");
+                        await this.dbs["users"].put(new_user);
+                        await this.dbs["summary"].put(new_summary);
                         this.add_dialog = false;
                         this.token_dialog = true;
                         this.creating_device = false;
                     } catch {
-                        this.show_error("Unexpected error.")
+                        this.show_error("Unexpected error.");
                         this.new_device_name = "";
                         this.add_dialog = false;
                         this.creating_device = false;
@@ -265,11 +268,11 @@
             },
             async permanent_delete() {
                 this.delete_snackbar = false;
-                const summary_item = await this.$pouch.find({selector: {device: this.pending_delete.name.substring(7)}}, "https://brownsense.misaka.center/db/summary");
+                const summary_item = await this.dbs["summary"].find({selector: {device: this.pending_delete.name.substring(7)}});
                 if (summary_item.docs.length > 0) {
-                    await this.$pouch.remove(summary_item.docs[0], undefined, "https://brownsense.misaka.center/db/summary");
+                    await this.dbs["summary"].remove(summary_item.docs[0]);
                 }
-                await this.$pouch.remove(this.pending_delete, undefined, "https://brownsense.misaka.center/db/_users");
+                await this.dbs["users"].remove(this.pending_delete);
                 this.pending_delete = {};
             },
             async delete_device(user) {
@@ -292,7 +295,7 @@
                             this.password = "";
                         } else {
                             this.login_dialog = false;
-                            this.db_user = new PouchDB("https://brownsense.misaka.center/db/_users");
+                            this.$store.commit("add_db", {name: "users", instance: new PouchDB("https://brownsense.misaka.center/db/_users")});
                             this.loading = false;
                         }
                     })
@@ -305,9 +308,9 @@
                 this.working_value = 0;
                 this.working_msg = "";
                 this.working = true;
-                await this.$pouch.compact(undefined, "https://brownsense.misaka.center/db/summary");
-                await this.$pouch.compact(undefined, "https://brownsense.misaka.center/db/command");
-                await this.$pouch.compact(undefined, "https://brownsense.misaka.center/db/datagrid");
+                await this.dbs["summary"].compact();
+                // await this.dbs["command"].compact();
+                await this.dbs["datagrid"].compact();
                 this.working_title = "complete";
                 this.working_indeterminate = false;
                 this.working_value = 100;
@@ -320,21 +323,21 @@
                 this.working_indeterminate = false;
                 this.working_value = 0;
                 this.working = true;
-                const total = (await this.$pouch.info("https://brownsense.misaka.center/db/datagrid")).doc_count;
+                const total = (await this.dbs["datagrid"].info()).doc_count;
                 let counter = 0;
-                let datalist = await this.$pouch.allDocs({limit: 1}, "https://brownsense.misaka.center/db/datagrid");
+                let datalist = await this.dbs["datagrid"].allDocs({limit: 1});
                 const valid_devices = this.users.map((x) => (x.name.substring(7)));
                 let purge_list = {};
                 if (datalist.rows.length > 0) {
                     let startkey = datalist.rows[0].id;
                     let finished = false;
                     let counter = 0;
-                    const total = (await this.$pouch.info("https://brownsense.misaka.center/db/datagrid")).doc_count;
                     while (!finished) {
-                        datalist = await this.$pouch.allDocs({
+                        datalist = await this.dbs["datagrid"].allDocs({
                             startkey: startkey,
-                            limit: 101
-                        }, "https://brownsense.misaka.center/db/datagrid");
+                            limit: 101,
+                            include_docs: true
+                        });
                         this.working_value = Math.floor(counter / total * 100);
                         this.working_msg = this.working_value;
                         datalist.rows.slice(0, -1).forEach((row) => {

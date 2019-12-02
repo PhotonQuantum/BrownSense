@@ -42,7 +42,7 @@
     </v-container>
 </template>
 <script>
-    import PouchDB from "pouchdb-browser";
+    import { mapState } from 'vuex';
     import ClusterStatus from "./ClusterStatus";
     import ActuatorStatus from "./ActuatorStatus";
     import DeviceSummary from "./DeviceSummary";
@@ -61,15 +61,18 @@
         pouch: {
             summary() {
                 return {
-                    database: this.db_summary,
+                    database: this.dbs["summary"],
                     selector: {
                         device: {$gt: 0}
                     },
-                    limit: 100
+                    limit: 25
                 }
             }
         },
         computed: {
+            ...mapState([
+                "dbs"
+            ]),
             all_devs: function () {
                 if (this.summary !== null) {
                     return this.summary.filter(x => x.device !== undefined).slice().sort((a, b) => a.device - b.device);
@@ -132,7 +135,6 @@
         },
         created: function () {
             this.updatetime();
-            this.db_summary = new PouchDB("https://brownsense.misaka.center/db/summary");
             this.$on("pouchdb-livefeed-ready", function () {
                 this.loading = false;
             });

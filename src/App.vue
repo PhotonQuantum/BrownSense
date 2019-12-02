@@ -21,7 +21,7 @@
 </template>
 
 <script>
-// import HelloWorld from './components/HelloWorld';
+import PouchDB from 'pouchdb-browser';
 import axios from 'axios'
 export default {
   name: 'App',
@@ -32,13 +32,17 @@ export default {
     //
   }),
   created: function(){
-    axios.get("https://brownsense.misaka.center/db/_session").then((data) => {
-      if (data.data.userCtx.name === null) {
-        this.$pouch.connect("frontend_guest", "8696fee30cbd4a77814b4e8840676cea", "https://brownsense.misaka.center/db/summary").then((data) => {
-          this.$router.go();
-        });
+      this.connect_database();
+  },
+  methods: {
+    async connect_database(){
+      const session = await axios.get("https://brownsense.misaka.center/db/_session");
+      if (session.data.userCtx.name === null) {
+        await this.$pouch.connect("frontend_guest", "8696fee30cbd4a77814b4e8840676cea", "https://brownsense.misaka.center/db/summary");
       }
-    });
+      this.$store.commit("add_db", {name: "summary", instance: new PouchDB("https://brownsense.misaka.center/db/summary")});
+      this.$store.commit("add_db", {name: "datagrid", instance: new PouchDB("https://brownsense.misaka.center/db/datagrid")});
+    }
   }
 };
 </script>
