@@ -1,164 +1,161 @@
 <template>
     <v-container>
-        <v-layout wrap>
-            <v-flex mb-5 xs12>
-                <v-row justify="center">
-                    <v-col cols="12" md="8">
-                        <v-card>
-                            <v-toolbar color="primary" dark elevation="0">
-                                <v-toolbar-title class="font-weight-light">Device Management</v-toolbar-title>
-                                <v-spacer/>
-                                <v-btn outlined class="font-weight-light" :disabled="loading"
-                                       @click="()=>{this.new_device_name='';this.add_dialog=true}">Add Device
-                                </v-btn>
-                            </v-toolbar>
+        <v-row justify="center">
+            <v-col cols="12">
+                <v-card>
+                    <v-toolbar color="primary" dark elevation="0">
+                        <v-toolbar-title class="font-weight-light">Device Management</v-toolbar-title>
+                        <v-spacer/>
+                        <v-btn outlined class="font-weight-light" :disabled="loading"
+                               @click="()=>{this.new_device_name='';this.add_dialog=true}">Add Device
+                        </v-btn>
+                    </v-toolbar>
+                    <v-card-text>
+                        <v-skeleton-loader type="list-item, list-item, list-item" :loading="loading">
+                            <v-card outlined :disabled="deleting">
+                                <v-list class="pa-0">
+                                    <div class="ma-0 pa-0" v-for="user in users" :key="user._id">
+                                        <v-list-item :disabled="user.name === pending_delete.name">
+                                            <v-overlay color="white" opacity="1" absolute
+                                                       :value="user.name === pending_delete.name">
+                                            </v-overlay>
+                                            <v-list-item-content>
+                                                <v-list-item-title
+                                                        v-text="'Device #' + user.name.substring(7)"/>
+                                            </v-list-item-content>
+                                            <v-list-item-action>
+                                                <v-btn icon @click="delete_device(user)">
+                                                    <v-icon>mdi-delete</v-icon>
+                                                </v-btn>
+                                            </v-list-item-action>
+                                        </v-list-item>
+                                        <v-divider v-show="user !== users[users.length-1]"></v-divider>
+                                    </div>
+                                </v-list>
+                            </v-card>
+                        </v-skeleton-loader>
+                    </v-card-text>
+                </v-card>
+            </v-col>
+            <v-col cols="12">
+                <v-card>
+                    <v-toolbar color="primary" dark elevation="0">
+                        <v-toolbar-title class="font-weight-light">Database Operation</v-toolbar-title>
+                    </v-toolbar>
+                    <v-skeleton-loader type="list-item" :loading="loading">
+                        <v-card-actions>
+                            <v-btn @click="clean_datagrid()">Clean Datagrid</v-btn>
+                            <v-btn @click="compact_database()">Compact Database</v-btn>
+                        </v-card-actions>
+                    </v-skeleton-loader>
+                </v-card>
+            </v-col>
+            <v-dialog v-model="token_dialog" max-width="400">
+                <v-card>
+                    <v-card-title>
+                        Device created
+                    </v-card-title>
+                    <v-card-text>
+                        <v-card outlined>
                             <v-card-text>
-                                <v-skeleton-loader type="list-item, list-item, list-item" :loading="loading">
-                                    <v-card outlined :disabled="deleting">
-                                        <v-list class="pa-0">
-                                            <div class="ma-0 pa-0" v-for="user in users" :key="user._id">
-                                                <v-list-item :disabled="user.name === pending_delete.name">
-                                                    <v-overlay color="white" opacity="1" absolute
-                                                               :value="user.name === pending_delete.name">
-                                                    </v-overlay>
-                                                    <v-list-item-content>
-                                                        <v-list-item-title
-                                                                v-text="'Device #' + user.name.substring(7)"></v-list-item-title>
-                                                    </v-list-item-content>
-                                                    <v-list-item-action>
-                                                        <v-btn icon @click="delete_device(user)">
-                                                            <v-icon>mdi-delete</v-icon>
-                                                        </v-btn>
-                                                    </v-list-item-action>
-                                                </v-list-item>
-                                                <v-divider v-show="user !== users[users.length-1]"></v-divider>
-                                            </div>
-                                        </v-list>
-                                    </v-card>
-                                </v-skeleton-loader>
+                                <p>
+                                    <v-icon>mdi-api</v-icon>
+                                    User: device_{{ new_device_name }}
+                                </p>
+                                <p>
+                                    <v-icon>mdi-shield-lock</v-icon>
+                                    Token: {{ new_device_token }}
+                                </p>
                             </v-card-text>
                         </v-card>
-                    </v-col>
-                    <v-col cols="12" md="8">
-                        <v-card>
-                            <v-toolbar color="primary" dark elevation="0">
-                                <v-toolbar-title class="font-weight-light">Database Operation</v-toolbar-title>
-                            </v-toolbar>
-                            <v-skeleton-loader type="list-item" :loading="loading">
-                                <v-card-actions>
-                                    <v-btn @click="clean_datagrid()">Clean Datagrid</v-btn>
-                                    <v-btn @click="compact_database()">Compact Database</v-btn>
-                            </v-card-actions>
-                            </v-skeleton-loader>
-                        </v-card>
-                    </v-col>
-                    <v-dialog v-model="token_dialog" max-width="400">
-                        <v-card>
-                            <v-card-title>
-                                Device created
-                            </v-card-title>
-                            <v-card-text>
-                                <v-card outlined>
-                                    <v-card-text>
-                                        <p>
-                                            <v-icon>mdi-api</v-icon>
-                                            User: device_{{ new_device_name }}
-                                        </p>
-                                        <p>
-                                            <v-icon>mdi-shield-lock</v-icon>
-                                            Token: {{ new_device_token }}
-                                        </p>
-                                    </v-card-text>
-                                </v-card>
-                            </v-card-text>
-                            <v-card-actions>
-                                <v-spacer/>
-                                <v-btn text color="primary" @click="token_dialog = false">Close</v-btn>
-                            </v-card-actions>
-                        </v-card>
-                    </v-dialog>
-                    <v-dialog v-model="add_dialog" max-width="400">
-                        <v-card :disabled="creating_device">
-                            <v-card-title>
-                                New device
-                            </v-card-title>
-                            <v-card-text>
-                                <v-form>
-                                    <v-text-field
-                                            v-model="new_device_name"
-                                            label="Device name"
-                                            name="new_device_name"
-                                            prepend-icon="mdi-api"
-                                            type="text"
-                                    />
-                                </v-form>
-                            </v-card-text>
-                            <v-card-actions>
-                                <v-spacer/>
-                                <v-btn text color="primary" @click="create_device()">Create</v-btn>
-                            </v-card-actions>
-                        </v-card>
-                    </v-dialog>
-                    <v-dialog v-model="login_dialog" max-width="400">
-                        <v-card>
-                            <v-card-title>
-                                Authentication Required
-                            </v-card-title>
-                            <v-card-text>
-                                <v-alert dense outlined type="warning">You are entering sudo mode.</v-alert>
-                                <v-form>
-                                    <v-text-field
-                                            v-model="username"
-                                            label="Login"
-                                            name="login"
-                                            prepend-icon="mdi-account"
-                                            type="text"
-                                            ref="text_username"
-                                    />
+                    </v-card-text>
+                    <v-card-actions>
+                        <v-spacer/>
+                        <v-btn text color="primary" @click="token_dialog = false">Close</v-btn>
+                    </v-card-actions>
+                </v-card>
+            </v-dialog>
+            <v-dialog v-model="add_dialog" max-width="400">
+                <v-card :disabled="creating_device">
+                    <v-card-title>
+                        New device
+                    </v-card-title>
+                    <v-card-text>
+                        <v-form>
+                            <v-text-field
+                                    v-model="new_device_name"
+                                    label="Device name"
+                                    name="new_device_name"
+                                    prepend-icon="mdi-api"
+                                    type="text"
+                            />
+                        </v-form>
+                    </v-card-text>
+                    <v-card-actions>
+                        <v-spacer/>
+                        <v-btn text color="primary" @click="create_device()">Create</v-btn>
+                    </v-card-actions>
+                </v-card>
+            </v-dialog>
+            <v-dialog v-model="login_dialog" max-width="400">
+                <v-card>
+                    <v-card-title>
+                        Authentication Required
+                    </v-card-title>
+                    <v-card-text>
+                        <v-alert dense outlined type="warning">You are entering sudo mode.</v-alert>
+                        <v-form>
+                            <v-text-field
+                                    v-model="username"
+                                    label="Login"
+                                    name="login"
+                                    prepend-icon="mdi-account"
+                                    type="text"
+                                    ref="text_username"
+                            />
 
-                                    <v-text-field
-                                            v-model="password"
-                                            id="password"
-                                            label="Password"
-                                            name="password"
-                                            prepend-icon="mdi-lock"
-                                            type="password"
-                                    />
-                                </v-form>
-                            </v-card-text>
-                            <v-card-actions>
-                                <v-spacer/>
-                                <v-btn text color="primary" @click="login()">Login</v-btn>
+                            <v-text-field
+                                    v-model="password"
+                                    id="password"
+                                    label="Password"
+                                    name="password"
+                                    prepend-icon="mdi-lock"
+                                    type="password"
+                                    @keyup.enter.native="login()"
+                            />
+                        </v-form>
+                    </v-card-text>
+                    <v-card-actions>
+                        <v-spacer/>
+                        <v-btn text color="primary" @click="login()">Login</v-btn>
 
-                            </v-card-actions>
-                        </v-card>
-                    </v-dialog>
-                    <v-snackbar :timeout='3000' color="error" v-model="error_snackbar">
-                        {{ error_snackbar_message }}
-                        <v-btn text @click="error_snackbar = false">Close</v-btn>
-                    </v-snackbar>
-                    <v-snackbar :timeout='3000' v-model="delete_snackbar" @input="permanent_delete()">
-                        Deleting {{ pending_delete.name }} ...
-                        <v-btn color="pink" text @click="cancel_delete()">Undo</v-btn>
-                        <v-btn color="pink" text @click="permanent_delete()">Close</v-btn>
-                    </v-snackbar>
-                    <v-overlay :value="working">
-                        <div align="center">
-                            <h1 class="text--white font-weight-light text-uppercase">{{ working_title }}</h1>
-                            <v-progress-circular :indeterminate="working_indeterminate" :rotate="working_rotate"
-                                                 size="90" :value="working_value">{{ working_msg }}
-                            </v-progress-circular>
-                        </div>
-                    </v-overlay>
-                </v-row>
-            </v-flex>
-        </v-layout>
+                    </v-card-actions>
+                </v-card>
+            </v-dialog>
+            <v-snackbar :timeout='3000' color="error" v-model="error_snackbar">
+                {{ error_snackbar_message }}
+                <v-btn text @click="error_snackbar = false">Close</v-btn>
+            </v-snackbar>
+            <v-snackbar :timeout='3000' v-model="delete_snackbar" @input="permanent_delete()">
+                Deleting {{ pending_delete.name }} ...
+                <v-btn color="pink" text @click="cancel_delete()">Undo</v-btn>
+                <v-btn color="pink" text @click="permanent_delete()">Close</v-btn>
+            </v-snackbar>
+            <v-overlay :value="working">
+                <div align="center">
+                    <h1 class="text--white font-weight-light text-uppercase">{{ working_title }}</h1>
+                    <v-progress-circular :indeterminate="working_indeterminate" :rotate="working_rotate"
+                                         size="90" :value="working_value">{{ working_msg }}
+                    </v-progress-circular>
+                </div>
+            </v-overlay>
+        </v-row>
     </v-container>
 </template>
 
 <script>
     import axios from 'axios'
-    import { mapState } from 'vuex'
+    import {mapState} from 'vuex'
     import PouchDB from 'pouchdb-browser'
     import uuid4 from 'uuid/v4'
 
@@ -202,11 +199,15 @@
             }
         },
         created() {
+            this.$store.commit("set_nav", [{text: "Manage", disabled: true}]);
             axios.get("https://brownsense.misaka.center/db/_session").then((data) => {
                 if (data.data.userCtx.name !== "admin") {
                     this.login_dialog = true;
                 } else {
-                    this.$store.commit("add_db", {name: "users", instance: new PouchDB("https://brownsense.misaka.center/db/_users")});
+                    this.$store.commit("add_db", {
+                        name: "users",
+                        instance: new PouchDB("https://brownsense.misaka.center/db/_users")
+                    });
                     this.loading = false;
                 }
             });
@@ -296,9 +297,13 @@
                             this.show_error("Authentication failed.")
                             this.username = "";
                             this.password = "";
+                            this.$refs['text_username'].focus();
                         } else {
                             this.login_dialog = false;
-                            this.$store.commit("add_db", {name: "users", instance: new PouchDB("https://brownsense.misaka.center/db/_users")});
+                            this.$store.commit("add_db", {
+                                name: "users",
+                                instance: new PouchDB("https://brownsense.misaka.center/db/_users")
+                            });
                             this.loading = false;
                         }
                     })

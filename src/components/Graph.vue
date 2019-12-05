@@ -1,82 +1,74 @@
 <template>
-    <v-container>
-        <v-layout text-center wrap>
-            <v-flex mb-5 xs12>
-                <v-row justify="center">
-                    <v-col cols="12" md="8">
-                        <v-skeleton-loader type="list-item, image" :loading="loading">
-                            <v-card>
-                                <v-card-title>
-                                    <v-list-item two-line>
-                                        <v-list-item-content>
-                                            <v-list-item-subtitle>Hydrogen Sulfide</v-list-item-subtitle>
-                                            <v-list-item-title class="headline">{{ this.this_device.h2s }} PPM
-                                            </v-list-item-title>
-                                        </v-list-item-content>
-                                    </v-list-item>
-                                </v-card-title>
-                                <v-card-text>
-                                    <div class="grey lighten-4 pa-6">
-                                        <line-chart
-                                                class="sensor-graph"
-                                                :chart-data="h2s_collection"
-                                                :options="chart_options"
-                                        ></line-chart>
-                                    </div>
-                                </v-card-text>
-                            </v-card>
-                        </v-skeleton-loader>
-                    </v-col>
-                    <v-col cols="12" md="8">
-                        <v-skeleton-loader type="list-item, image" :loading="loading">
-                            <v-card>
-                                <v-card-title>
-                                    <v-list-item two-line>
-                                        <v-list-item-content>
-                                            <v-list-item-subtitle>Ammonia</v-list-item-subtitle>
-                                            <v-list-item-title class="headline">{{ this.this_device.nh3 }} PPM
-                                            </v-list-item-title>
-                                        </v-list-item-content>
-                                    </v-list-item>
-                                </v-card-title>
-                                <v-card-text>
-                                    <div class="grey lighten-4 pa-6">
-                                        <line-chart
-                                                class="sensor-graph"
-                                                :chart-data="nh3_collection"
-                                                :options="chart_options"
-                                        ></line-chart>
-                                    </div>
-                                </v-card-text>
-                            </v-card>
-                        </v-skeleton-loader>
-                    </v-col>
-                </v-row>
-            </v-flex>
-        </v-layout>
-    </v-container>
+
+    <v-row justify="center">
+        <v-col cols="12">
+            <v-card>
+                <v-card-title>
+                    <v-list-item two-line>
+                        <v-list-item-content class="text-center">
+                            <v-list-item-subtitle>Hydrogen Sulfide</v-list-item-subtitle>
+                            <v-list-item-title class="headline">{{ this.this_device.h2s }} PPM
+                            </v-list-item-title>
+                        </v-list-item-content>
+                    </v-list-item>
+                </v-card-title>
+                <v-card-text>
+                    <div class="grey lighten-4 pa-6">
+                        <line-chart
+                                class="sensor-graph"
+                                :chart-data="h2s_collection"
+                                :options="chart_options"
+                        />
+                    </div>
+                </v-card-text>
+            </v-card>
+        </v-col>
+        <v-col cols="12">
+            <v-card>
+                <v-card-title>
+                    <v-list-item two-line>
+                        <v-list-item-content class="text-center">
+                            <v-list-item-subtitle>Ammonia</v-list-item-subtitle>
+                            <v-list-item-title class="headline">{{ this.this_device.nh3 }} PPM
+                            </v-list-item-title>
+                        </v-list-item-content>
+                    </v-list-item>
+                </v-card-title>
+                <v-card-text>
+                    <div class="grey lighten-4 pa-6">
+                        <line-chart
+                                class="sensor-graph"
+                                :chart-data="nh3_collection"
+                                :options="chart_options"
+                        />
+                    </div>
+                </v-card-text>
+            </v-card>
+        </v-col>
+    </v-row>
 </template>
 
 <script>
-    import { mapState } from 'vuex';
+    import {mapState} from 'vuex';
     import LineChart from "./LineChart.js";
-    import PouchDB from 'pouchdb-browser';
     import VueScreenSize from 'vue-screen-size';
 
     export default {
+        name: "Graph",
         mixins: [VueScreenSize.VueScreenSizeMixin],
+        components: {LineChart},
         data: () => ({
-            loading: true,
             h2s_collection: null,
             nh3_collection: null,
             time_filter: -1,
         }),
-        components: {LineChart},
-        props: ["device"],
         computed: {
-            ... mapState([
+            ...mapState([
                 "dbs"
             ]),
+            device: function () {
+                return this.$route.params.id;
+            },
             chart_options: function () {
                 return {
                     maintainAspectRatio: false,
@@ -185,36 +177,14 @@
                 };
             }
         },
-
-        created: function () {
-            this.loaded = false;
+        created (){
             this.time_filter = new Date() / 1000;
-            this.$on("pouchdb-livefeed-ready", function () {
-                this.loading = false;
-            });
         }
-    };
+
+    }
 </script>
 
-<!-- Add "scoped" attribute to limit CSS to this component only -->
 <style scoped>
-    h3 {
-        margin: 40px 0 0;
-    }
-
-    ul {
-        list-style-type: none;
-        padding: 0;
-    }
-
-    li {
-        display: inline-block;
-        margin: 0 10px;
-    }
-
-    a {
-        color: #42b983;
-    }
 
     .sensor-graph {
         height: calc(30vh);

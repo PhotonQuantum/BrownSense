@@ -59,7 +59,7 @@
         </v-card-text>
         <v-divider></v-divider>
         <v-card-actions>
-            <v-btn :to="route_url" class="text-uppercase" text>details</v-btn>
+            <v-btn :to="detail_url" class="text-uppercase" text>details</v-btn>
         </v-card-actions>
     </v-card>
 </template>
@@ -69,8 +69,8 @@
         name: "device-summary",
         props: ["id", "enabled", "mode", "actuator_raw", "h2s", "nh3"],
         computed: {
-            route_url: function(){
-                return "/detail/" + this.id;
+            detail_url: function(){
+                return "device/" + this.id;
             },
             status: function() {
                 if (this.mode === "force_on" || this.mode === "force_off"){
