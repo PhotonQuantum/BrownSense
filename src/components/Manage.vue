@@ -347,7 +347,7 @@
                         this.working_value = Math.floor(counter / total * 100);
                         this.working_msg = this.working_value;
                         datalist.rows.slice(0, -1).forEach((row) => {
-                            if (!valid_devices.includes(row.doc.device) && row.doc._id !== "_design/my_validation_function") {
+                            if (!valid_devices.includes(row.doc.device) && row.doc._id.substring(0, 8) !== "_design/") {
                                 purge_list[row.doc._id] = [row.doc._rev];
                             }
                         });
@@ -358,7 +358,7 @@
                         finished = datalist.rows.length < 101;
                     }
                     const row = datalist.rows[datalist.rows.length - 1];
-                    if (!valid_devices.includes(row.doc.device) && row.doc._id !== "_design/my_validation_function") {
+                    if (!valid_devices.includes(row.doc.device) && row.doc._id.substring(0, 8) !== "_design/") {
                         purge_list[row.doc._id] = [row.doc._rev];
                         await axios.post('/db/datagrid/_purge', purge_list);
                     }
