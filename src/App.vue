@@ -1,6 +1,6 @@
 <template>
   <v-app>
-      <v-navigation-drawer app v-model="drawer_open" color="primary" dark>
+      <v-navigation-drawer app v-model="drawer_open" color="primary" dark touchless>
         <v-list-item>
           <v-list-item-content>
             <v-list-item-title class="title">
