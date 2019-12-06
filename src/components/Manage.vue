@@ -294,7 +294,7 @@
                 this.$pouch.connect(this.username, this.password, "https://brownsense.misaka.center/db/_users").then((val) => {
                     axios.get("https://brownsense.misaka.center/db/_session").then((data) => {
                         if (data.data.userCtx.name !== "admin") {
-                            this.show_error("Authentication failed.")
+                            this.show_error("Authentication failed.");
                             this.username = "";
                             this.password = "";
                             this.$refs['text_username'].focus();

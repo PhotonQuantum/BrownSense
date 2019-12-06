@@ -4,7 +4,6 @@ from concurrent.futures.thread import ThreadPoolExecutor
 import requests
 from uuid import uuid4
 from queue import SimpleQueue
-import json
 import time
 
 
@@ -54,12 +53,23 @@ class Remote:
                 break
 
     def _cmd_watcher_thread(self):
+        query = self._db.dbs["command"].get_query_result({"type": "queue", "device": self._device_id})
+        if query[0]:
+            queue_top = query[0][0]["top"]
+        else:
+            queue_top = 0
         while not self._terminated:
-            watcher = self._db.dbs["command"].changes(feed="longpoll", timeout=5, include_docs=True)
-            params = json.loads(watcher)
-            if params["device"] == self._device_id:
-                print("[C] callback triggered")
-                self._callback(params["param"], params["data"])
+            print(f"[C] MQ top: { queue_top }")
+            query = self._db.dbs["command"].get_query_result(
+                {"type": "task", "device": self._device_id, "created_at": {"$gt": queue_top}}, sort=[{"created_at": "desc"}])
+            if query[0]:
+                params = query[0][0]
+                print(f"[C] { params }")
+                queue_top = params["created_at"]
+                self._db.update_doc("command", {"type": "queue", "device": self._device_id}, {"type": "queue", "device": self._device_id, "top": queue_top})
+                print(f"[C] MQ top updated")
+                self._callback(params["payload"]["event"], params["payload"]["data"])
+            time.sleep(1)
 
     def report_summary(self, status, sensor, actuator):
         doc = {"device": self._device_id, "time": time.time(), "status": status,
@@ -97,6 +107,7 @@ class Database:
 
     def update_doc(self, db, mango_query, data):
         query = self.dbs[db].get_query_result(mango_query)
+        # try: except ConnectionError:
         if query[0]:
             doc = self.dbs[db][query[0][0]["_id"]]
             for item in data:
@@ -108,4 +119,3 @@ class Database:
                 self.dbs[db].create_document(data)
             except requests.HTTPError as e:
                 raise
-
