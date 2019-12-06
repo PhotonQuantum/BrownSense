@@ -1,5 +1,5 @@
 <template>
-<doughnut-chart :chart-data="datacollection" :options="chart_options"></doughnut-chart>
+    <doughnut-chart :chart-data="datacollection" :options="chart_options"/>
 </template>
 <script>
 import DoughnutChart from './DoughnutChart.js';

@@ -23,7 +23,7 @@
                 </v-col>
             </v-row>
             <div v-if="enabled">
-            <v-divider></v-divider>
+                <v-divider/>
             <v-row align="center">
                 <v-col cols="12" md="6">
                     <v-list class="transparent">
@@ -37,7 +37,7 @@
                         </v-list-item>
                     </v-list>
                     <v-col cols="12">
-                        <v-progress-linear :value="progress_h2s" :color="color_h2s"></v-progress-linear>
+                        <v-progress-linear :value="progress_h2s" :color="color_h2s"/>
                     </v-col>
                 </v-col>
                 <v-col cols="12" md="6">
@@ -52,12 +52,12 @@
                         </v-list-item>
                     </v-list>
                     <v-col cols="12">
-                        <v-progress-linear :value="progress_nh3" :color="color_nh3"></v-progress-linear>
+                        <v-progress-linear :value="progress_nh3" :color="color_nh3"/>
                     </v-col>
                 </v-col>
             </v-row></div>
         </v-card-text>
-        <v-divider></v-divider>
+        <v-divider/>
         <v-card-actions>
             <v-btn :to="detail_url" class="text-uppercase" text>details</v-btn>
         </v-card-actions>

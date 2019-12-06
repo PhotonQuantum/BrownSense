@@ -8,7 +8,7 @@
                             <span class="font-weight-light">cluster status</span>
                         </v-card-title>
                         <div class="graph">
-                            <cluster-status :online="online" :offline="offline" :lost="lost"></cluster-status>
+                            <cluster-status :online="online" :offline="offline" :lost="lost"/>
                         </div>
                     </v-card>
                 </v-skeleton-loader>
@@ -20,7 +20,7 @@
                             <span class="font-weight-light">actuator status</span>
                         </v-card-title>
                         <div class="graph">
-                            <actuator-status :working="working" :pending="pending"></actuator-status>
+                            <actuator-status :working="working" :pending="pending"/>
                         </div>
                     </v-card>
                 </v-skeleton-loader>

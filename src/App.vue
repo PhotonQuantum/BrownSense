@@ -1,3 +1,4 @@
+<!--suppress JSUnresolvedVariable -->
 <template>
   <v-app>
       <v-navigation-drawer app v-model="drawer_open" color="primary" dark touchless>

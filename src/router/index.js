@@ -4,8 +4,8 @@ import Summary from '@/components/Summary'
 import About from '@/components/About'
 import Manage from "@/components/Manage";
 import Detail from "@/components/Detail";
-import DetailOverview from "../components/DetailOverview";
-import Graph from "../components/Graph";
+import DetailOverview from "@/components/DetailOverview";
+import Graph from "@/components/Graph";
 import NotFound from "@/components/NotFound"
 
 Vue.use(Router);

@@ -1,3 +1,4 @@
+<!--suppress JSUnresolvedVariable -->
 <template>
     <v-container>
         <v-row justify="center">
@@ -29,7 +30,7 @@
                                                 </v-btn>
                                             </v-list-item-action>
                                         </v-list-item>
-                                        <v-divider v-show="user !== users[users.length-1]"></v-divider>
+                                        <v-divider v-show="user !== users[users.length-1]"/>
                                     </div>
                                 </v-list>
                             </v-card>
@@ -142,7 +143,7 @@
                 <v-btn color="pink" text @click="permanent_delete()">Close</v-btn>
             </v-snackbar>
             <v-overlay :value="working">
-                <div align="center">
+                <div class="text-center">
                     <h1 class="text--white font-weight-light text-uppercase">{{ working_title }}</h1>
                     <v-progress-circular :indeterminate="working_indeterminate" :rotate="working_rotate"
                                          size="90" :value="working_value">{{ working_msg }}
@@ -222,12 +223,12 @@
                 this.error_snackbar_message = msg;
                 this.error_snackbar = true;
             },
-            async create_device(user) {
+            async create_device() {
                 const new_device = "device_" + this.new_device_name;
                 this.creating_device = true;
                 let create_user = false;
                 try {
-                    const result = await this.dbs["users"].get("org.couchdb.user:" + new_device);
+                    await this.dbs["users"].get("org.couchdb.user:" + new_device);
                 } catch {
                     create_user = true;
                 }
@@ -264,7 +265,7 @@
                     }
                 } else {
                     this.new_device_name = "";
-                    this.show_error("Device exists.")
+                    this.show_error("Device exists.");
                     this.creating_device = false;
                 }
             },
@@ -290,24 +291,22 @@
                 this.pending_delete = {};
                 this.delete_snackbar = false;
             },
-            login() {
-                this.$pouch.connect(this.username, this.password, "https://brownsense.misaka.center/db/_users").then((val) => {
-                    axios.get("https://brownsense.misaka.center/db/_session").then((data) => {
-                        if (data.data.userCtx.name !== "admin") {
-                            this.show_error("Authentication failed.");
-                            this.username = "";
-                            this.password = "";
-                            this.$refs['text_username'].focus();
-                        } else {
-                            this.login_dialog = false;
-                            this.$store.commit("add_db", {
-                                name: "users",
-                                instance: new PouchDB("https://brownsense.misaka.center/db/_users")
-                            });
-                            this.loading = false;
-                        }
-                    })
-                })
+            async login() {
+                await this.$pouch.connect(this.username, this.password, "https://brownsense.misaka.center/db/_users")
+                const data = await axios.get("https://brownsense.misaka.center/db/_session")
+                if (data.data.userCtx.name !== "admin") {
+                    this.show_error("Authentication failed.");
+                    this.username = "";
+                    this.password = "";
+                    this.$refs['text_username'].focus();
+                } else {
+                    this.login_dialog = false;
+                    this.$store.commit("add_db", {
+                        name: "users",
+                        instance: new PouchDB("https://brownsense.misaka.center/db/_users")
+                    });
+                    this.loading = false;
+                }
             },
             async compact_database() {
                 this.working_title = "compacting database";
@@ -332,7 +331,6 @@
                 this.working_value = 0;
                 this.working = true;
                 const total = (await this.dbs["datagrid"].info()).doc_count;
-                let counter = 0;
                 let datalist = await this.dbs["datagrid"].allDocs({limit: 1});
                 const valid_devices = this.users.map((x) => (x.name.substring(7)));
                 let purge_list = {};
@@ -353,7 +351,7 @@
                                 purge_list[row.doc._id] = [row.doc._rev];
                             }
                         });
-                        const res = await axios.post('/db/datagrid/_purge', purge_list);
+                        await axios.post('/db/datagrid/_purge', purge_list);
                         purge_list = {};
                         startkey = datalist.rows[datalist.rows.length - 1].id;
                         counter += 100;
@@ -362,7 +360,7 @@
                     const row = datalist.rows[datalist.rows.length - 1];
                     if (!valid_devices.includes(row.doc.device) && row.doc._id !== "_design/my_validation_function") {
                         purge_list[row.doc._id] = [row.doc._rev];
-                        const res = await axios.post('/db/datagrid/_purge', purge_list);
+                        await axios.post('/db/datagrid/_purge', purge_list);
                     }
                 }
                 this.working_title = "complete";
