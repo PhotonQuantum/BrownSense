@@ -20,21 +20,26 @@
                 </template>
 
                 <v-card>
+                    <v-overlay :value="!is_sudo" absolute class="justify-center" opacity=".6">
+                        <v-alert v-if="!is_sudo" dense type="warning" dark>Login required.</v-alert>
+                        <div class="text-center"><v-btn text @click="login_dialog=true">Login</v-btn></div>
+                    </v-overlay>
                     <v-card-title>
                         <v-icon left>mdi-information</v-icon>
                         <span class="title font-weight-light">Override</span>
                     </v-card-title>
 
                     <v-card-text style="padding-bottom: 0">
-                        <v-radio-group>
-                            <v-radio label="Auto"/>
-                            <v-radio label="Force On"/>
-                            <v-radio label="Force Off"/></v-radio-group>
+                        <v-radio-group class="ma-0 pa-0" v-model="override_mode" mandatory>
+                            <v-radio label="Auto" value="auto"/>
+                            <v-radio label="Force On" value="force_on"/>
+                            <v-radio label="Force Off" value="force_off"/>
+                        </v-radio-group>
                     </v-card-text>
                     <v-card-actions>
-                        <v-spacer />
+                        <v-spacer/>
                         <v-btn text @click="menu_switch = false">Cancel</v-btn>
-                        <v-btn color="primary" text @click="menu_switch = false">Apply</v-btn>
+                        <v-btn color="primary" text @click="set_override">Apply</v-btn>
                     </v-card-actions>
                 </v-card>
             </v-menu>
@@ -52,6 +57,10 @@
                 </template>
 
                 <v-card>
+                    <v-overlay :value="!is_sudo" absolute class="justify-center" opacity=".6">
+                        <v-alert v-if="!is_sudo" dense type="warning" dark>Login required.</v-alert>
+                        <div class="text-center"><v-btn text @click="login_dialog=true">Login</v-btn></div>
+                    </v-overlay>
                     <v-card-title>
                         <v-icon color="error" left>mdi-alert-circle</v-icon>
                         <span class="title font-weight-light error--text">Delete</span>
@@ -62,9 +71,11 @@
                         <v-checkbox v-model="delete_confirm" label="Yes, delete this device."/>
                     </v-card-text>
                     <v-card-actions>
-                        <v-spacer />
-                        <v-btn text @click="menu_delete = false">Cancel</v-btn>
-                        <v-btn color="error" text @click="menu_delete = false" :disabled="!delete_confirm">Delete</v-btn>
+                        <v-spacer/>
+                        <v-btn text @click="()=>{this.menu_delete = false; this.delete_confirm = false;}">Cancel</v-btn>
+                        <v-btn color="error" text @click="()=>{this.menu_delete = false; this.delete_confirm = false;}"
+                               :disabled="!delete_confirm">Delete
+                        </v-btn>
                     </v-card-actions>
                 </v-card>
             </v-menu>
@@ -73,19 +84,68 @@
             <v-tab to="overview">Overview</v-tab>
             <v-tab to="graph">Graph</v-tab>
         </v-tabs>
-        <v-divider />
-        <router-view />
+        <v-divider/>
+        <router-view/>
+        <v-dialog v-model="login_dialog" max-width="400">
+            <v-card>
+                <v-card-title>
+                    Authentication Required
+                </v-card-title>
+                <v-card-text>
+                    <v-alert dense outlined type="warning">You are entering sudo mode.</v-alert>
+                    <v-form>
+                        <v-text-field
+                                v-model="username"
+                                label="Login"
+                                name="login"
+                                prepend-icon="mdi-account"
+                                type="text"
+                                ref="text_username"
+                        />
+
+                        <v-text-field
+                                v-model="password"
+                                id="password"
+                                label="Password"
+                                name="password"
+                                prepend-icon="mdi-lock"
+                                type="password"
+                                @keyup.enter.native="login()"
+                        />
+                    </v-form>
+                </v-card-text>
+                <v-card-actions>
+                    <v-spacer/>
+                    <v-btn text color="primary" @click="login()">Login</v-btn>
+
+                </v-card-actions>
+            </v-card>
+        </v-dialog>
+        <v-snackbar :timeout='3000' color="error" v-model="error_snackbar">
+            {{ error_snackbar_message }}
+            <v-btn text @click="error_snackbar = false">Close</v-btn>
+        </v-snackbar>
     </v-container>
 </template>
 
 <script>
+    import axios from "axios";
+    import PouchDB from "pouchdb-browser";
     import {mapState} from 'vuex';
+    import uuid4 from 'uuid/v4'
 
     export default {
         data: () => ({
             menu_switch: false,
             menu_delete: false,
-            delete_confirm: false
+            delete_confirm: false,
+            is_sudo: false,
+            login_dialog: false,
+            username: "",
+            password: "",
+            error_snackbar: false,
+            error_snackbar_message: "",
+            override_mode: "auto"
         }),
         computed: {
             ...mapState([
@@ -105,30 +165,63 @@
               };
             }
             */
-            this_device() {
-                return {
-                    database: this.dbs["summary"],
-                    selector: {
-                        device: this.device
-                    },
-                    first: true
-                }
-            },
         },
         watch: {
-            this_device: function (val) {
-                if (val.device === undefined) {
-                    this.$router.replace("/404");
+            menu_delete: function(val) {
+                if (val){
+                    console.log("please login");
+                }
+            }
+        },
+        methods:{
+            validateUser: async function(){
+                const session = await axios.get("https://brownsense.misaka.center/db/_session");
+                const result = session.data.userCtx.roles.includes("sudoers") || session.data.userCtx.roles.includes("_admin");
+                this.is_sudo = result;
+                console.log(result);
+                if (result === true){
+                    this.$store.commit("add_db", {
+                        name: "command",
+                        instance: new PouchDB("https://brownsense.misaka.center/db/command")
+                    });
+                }
+                return result;
+            },
+            login: async function(){
+                await this.$pouch.connect(this.username, this.password, "https://brownsense.misaka.center/db/command");
+                const is_sudo = await this.validateUser();
+                if (is_sudo){
+                    this.username = "";
+                    this.password = "";
+                    this.login_dialog = false;
+                } else {
+                    this.show_error("Authentication failed.");
+                    this.username = "";
+                    this.password = "";
+                    this.$refs['text_username'].focus();
                 }
             },
+            show_error(msg) {
+                this.error_snackbar_message = msg;
+                this.error_snackbar = true;
+            },
+            async set_override(){
+                this.menu_switch = false;
+                await this.send_command({event: "override", data: this.override_mode})
+            },
+            async send_command(payload){
+                const doc_id = uuid4().replace(/-/g, '');
+                const data = {_id: doc_id, type: "task", device: this.device, created_at: new Date()/1000,  payload: payload};
+                await this.dbs["command"].put(data);
+            }
         },
-
         created: function () {
             this.$store.commit("set_nav", [{text: "Overview", disabled: false, to: "/"}, {
                 text: "Device #" + this.device,
                 disabled: true
             }]);
-        }
+            this.validateUser();
+        },
     };
 </script>
 

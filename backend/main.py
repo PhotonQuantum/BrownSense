@@ -39,18 +39,12 @@ def main():
 def callback(event, params):
     if event == "override":
         global override
-        override = params[0]
+        override = params
 
 
 def report_thread(remote, sensor, actuator, killer):
     while not killer.kill_now:
-        if override == -1:
-            override_status = "force_off"
-        elif override == 1:
-            override_status = "force_on"
-        else:
-            override_status = "auto"
-        remote.report_summary(override_status, sensor.reading, actuator.closed)
+        remote.report_summary(override, sensor.reading, actuator.closed)
         time.sleep(1)
     print("[-] report thread terminated")
 
