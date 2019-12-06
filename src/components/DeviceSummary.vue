@@ -30,7 +30,7 @@
                         <v-list-item>
                             <v-list-item-title>H2S</v-list-item-title>
                             <v-list-item-icon class="text-center">
-                                <v-icon v-if="this.h2s <= 510">mdi-check-circle</v-icon>
+                                <v-icon v-if="this.h2s <= 40">mdi-check-circle</v-icon>
                                 <v-icon v-else>mdi-alert-circle</v-icon>
                             </v-list-item-icon>
                             <v-list-item-subtitle class="text-right">{{ h2s }}ppm</v-list-item-subtitle>
@@ -45,7 +45,7 @@
                         <v-list-item>
                             <v-list-item-title>NH3</v-list-item-title>
                             <v-list-item-icon class="text-center">
-                                <v-icon v-if="this.nh3 <= 510">mdi-check-circle</v-icon>
+                                <v-icon v-if="this.nh3 <= 40">mdi-check-circle</v-icon>
                                 <v-icon v-else>mdi-alert-circle</v-icon>
                             </v-list-item-icon>
                             <v-list-item-subtitle class="text-right">{{ nh3 }}ppm</v-list-item-subtitle>
@@ -89,16 +89,16 @@
                 }
             },
             progress_nh3: function() {
-                return this.nh3 / 800 * 100;
+                return this.nh3 / 80 * 100;
             },
             progress_h2s: function() {
-                return this.h2s / 800 * 100;
+                return this.h2s / 80 * 100;
             },
             color_nh3: function(){
-                return this.nh3 > 510?"orange":"light-blue";
+                return this.nh3 > 40?"orange":"light-blue";
             },
             color_h2s: function(){
-                return this.h2s > 510?"orange":"light-blue";
+                return this.h2s > 40?"orange":"light-blue";
             }
         }
     }
