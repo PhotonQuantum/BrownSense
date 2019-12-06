@@ -1,5 +1,5 @@
 <template>
-    <v-card :disabled="!enabled">
+    <v-card :disabled="!enabled" hover>
         <v-card-title class="text-uppercase">
             <span class="font-weight-light">Device #{{ id }}</span>
         </v-card-title>
