@@ -21,8 +21,8 @@
 
                 <v-card>
                     <v-overlay :value="!is_sudo" absolute class="justify-center" opacity=".6">
-                        <v-alert v-if="!is_sudo" dense type="warning" dark>Login required.</v-alert>
-                        <div class="text-center"><v-btn text @click="login_dialog=true">Login</v-btn></div>
+                        <v-alert v-if="!is_sudo" dense type="warning" dark>Sudoer only.</v-alert>
+                        <div class="text-center"><v-btn text @click="()=>{this.login_admin=false; this.login_dialog=true;}">Login</v-btn></div>
                     </v-overlay>
                     <v-card-title>
                         <v-icon left>mdi-information</v-icon>
@@ -57,9 +57,9 @@
                 </template>
 
                 <v-card>
-                    <v-overlay :value="!is_sudo" absolute class="justify-center" opacity=".6">
-                        <v-alert v-if="!is_sudo" dense type="warning" dark>Login required.</v-alert>
-                        <div class="text-center"><v-btn text @click="login_dialog=true">Login</v-btn></div>
+                    <v-overlay :value="!is_admin" absolute class="justify-center" opacity=".6">
+                        <v-alert v-if="!is_admin" dense type="warning" dark>Admin only.</v-alert>
+                        <div class="text-center"><v-btn text @click="()=>{this.login_admin=true; this.login_dialog=true;}">Login</v-btn></div>
                     </v-overlay>
                     <v-card-title>
                         <v-icon color="error" left>mdi-alert-circle</v-icon>
@@ -73,7 +73,7 @@
                     <v-card-actions>
                         <v-spacer/>
                         <v-btn text @click="()=>{this.menu_delete = false; this.delete_confirm = false;}">Cancel</v-btn>
-                        <v-btn color="error" text @click="()=>{this.menu_delete = false; this.delete_confirm = false;}"
+                        <v-btn color="error" text @click="deleteDevice"
                                :disabled="!delete_confirm">Delete
                         </v-btn>
                     </v-card-actions>
@@ -140,7 +140,9 @@
             menu_delete: false,
             delete_confirm: false,
             is_sudo: false,
+            is_admin: false,
             login_dialog: false,
+            login_admin: false,
             username: "",
             password: "",
             error_snackbar: false,
@@ -166,30 +168,37 @@
             }
             */
         },
-        watch: {
-            menu_delete: function(val) {
-                if (val){
-                    console.log("please login");
-                }
-            }
-        },
         methods:{
-            validateUser: async function(){
+            deleteDevice: async function(){
+                const summary_item = await this.dbs["summary"].find({selector: {device: this.device}});
+                if (summary_item.docs.length > 0) {
+                    await this.dbs["summary"].remove(summary_item.docs[0]);
+                }
+                const user_item = await this.dbs["users"].get("org.couchdb.user:device_" + this.device);
+                await this.dbs["users"].remove(user_item);
+                await this.$router.push("/");
+            },
+            validateUser: async function(validateAdmin=false){
                 const session = await axios.get("https://brownsense.misaka.center/db/_session");
-                const result = session.data.userCtx.roles.includes("sudoers") || session.data.userCtx.roles.includes("_admin");
-                this.is_sudo = result;
-                console.log(result);
-                if (result === true){
+                this.is_sudo = session.data.userCtx.roles.includes("sudoers") || session.data.userCtx.roles.includes("_admin");
+                this.is_admin = session.data.userCtx.roles.includes("_admin");
+                if (this.is_sudo){
                     this.$store.commit("add_db", {
                         name: "command",
                         instance: new PouchDB("https://brownsense.misaka.center/db/command")
                     });
                 }
-                return result;
+                if (this.is_admin){
+                    this.$store.commit("add_db", {
+                        name: "users",
+                        instance: new PouchDB("https://brownsense.misaka.center/db/_users")
+                    })
+                }
+                return (validateAdmin?this.is_admin:this.is_sudo);
             },
             login: async function(){
                 await this.$pouch.connect(this.username, this.password, "https://brownsense.misaka.center/db/command");
-                const is_sudo = await this.validateUser();
+                const is_sudo = await this.validateUser(this.login_admin);
                 if (is_sudo){
                     this.username = "";
                     this.password = "";
