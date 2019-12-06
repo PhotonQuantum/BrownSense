@@ -29,7 +29,7 @@
                         <span class="title font-weight-light">Override</span>
                     </v-card-title>
 
-                    <v-card-text style="padding-bottom: 0">
+                    <v-card-text class="pb-0">
                         <v-radio-group class="ma-0 pa-0" v-model="override_mode" mandatory>
                             <v-radio label="Auto" value="auto"/>
                             <v-radio label="Force On" value="force_on"/>
@@ -66,7 +66,7 @@
                         <span class="title font-weight-light error--text">Delete</span>
                     </v-card-title>
 
-                    <v-card-text style="padding-bottom: 0">
+                    <v-card-text class="pb-0">
                         <span>Are you sure you want to delete this device?</span>
                         <v-checkbox v-model="delete_confirm" label="Yes, delete this device."/>
                     </v-card-text>
@@ -236,22 +236,4 @@
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style scoped>
-    h3 {
-        margin: 40px 0 0;
-    }
-
-    ul {
-        list-style-type: none;
-        padding: 0;
-    }
-
-    li {
-        display: inline-block;
-        margin: 0 10px;
-    }
-
-    a {
-        color: #42b983;
-    }
-
 </style>

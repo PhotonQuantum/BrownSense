@@ -7,7 +7,7 @@
                     <v-list-item two-line>
                         <v-list-item-content class="text-center">
                             <v-list-item-subtitle>Hydrogen Sulfide</v-list-item-subtitle>
-                            <v-list-item-title class="headline">{{ this.this_device.h2s }} PPM
+                            <v-list-item-title class="headline">{{ this_device.h2s }} PPM
                             </v-list-item-title>
                         </v-list-item-content>
                     </v-list-item>
@@ -29,7 +29,7 @@
                     <v-list-item two-line>
                         <v-list-item-content class="text-center">
                             <v-list-item-subtitle>Ammonia</v-list-item-subtitle>
-                            <v-list-item-title class="headline">{{ this.this_device.nh3 }} PPM
+                            <v-list-item-title class="headline">{{ this_device.nh3 }} PPM
                             </v-list-item-title>
                         </v-list-item-content>
                     </v-list-item>
@@ -60,7 +60,7 @@
         data: () => ({
             h2s_collection: {},
             nh3_collection: {},
-            time_filter: -1,
+            this_device: {h2s: "N/A", nh3: "N/A"}
         }),
         computed: {
             ...mapState([
@@ -106,15 +106,6 @@
             }
         },
         pouch: {
-            /*
-            dev_one() {
-              return {
-                database: "datagrid",
-                selector: this.db_selector,
-                sort: [{ time: "asc" }]
-              };
-            }
-            */
             this_device() {
                 return {
                     database: this.dbs["summary"],
@@ -130,7 +121,7 @@
                     selector: {
                         device: this.device,
                         type: "h2s",
-                        time: {$gt: this.time_filter - 1000}
+                        time: {$gt: new Date() / 1000 - 1000}
                     },
                     sort: [{time: "desc"}],
                     limit: 200
@@ -142,7 +133,7 @@
                     selector: {
                         device: this.device,
                         type: "nh3",
-                        time: {$gt: this.time_filter - 1000}
+                        time: {$gt: new Date() / 1000 - 1000}
                     },
                     sort: [{time: "desc"}],
                     limit: 200
@@ -176,11 +167,7 @@
                     ]
                 };
             }
-        },
-        created (){
-            this.time_filter = new Date() / 1000;
         }
-
     }
 </script>
 
