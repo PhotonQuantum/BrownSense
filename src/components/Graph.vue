@@ -58,8 +58,8 @@
         mixins: [VueScreenSize.VueScreenSizeMixin],
         components: {LineChart},
         data: () => ({
-            h2s_collection: null,
-            nh3_collection: null,
+            h2s_collection: {},
+            nh3_collection: {},
             time_filter: -1,
         }),
         computed: {
