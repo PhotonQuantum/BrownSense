@@ -175,7 +175,7 @@
                 },
                 {
                     avatar: "https://q1.qlogo.cn/g?b=qq&nk=879960008&s=640",
-                    name: "陈毓仁 (Ruiren Chen)", mail: "chenyuren@sjtu.edu.cn"
+                    name: "陈毓仁 (Yuren Chen)", mail: "chenyuren@sjtu.edu.cn"
                 },
                 {
                     avatar: "https://q1.qlogo.cn/g?b=qq&nk=1363227303&s=640",
