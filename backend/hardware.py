@@ -12,9 +12,7 @@ class Sensor:
     _terminated = False
     _ads = None
 
-    def __init__(self, sensor_ports=None, dummy=False):
-        if sensor_ports is None:
-            sensor_ports = [1, 2]
+    def __init__(self, dummy=False):
         if dummy:
             self._dummy_data = [50, 50]
         else:
@@ -52,7 +50,7 @@ class Sensor:
 
 
 class Actuator:
-    def __init__(self, relay_port=1, dummy=False):
+    def __init__(self, dummy=False):
         if dummy:
             self._dummy_status = -1
         else:

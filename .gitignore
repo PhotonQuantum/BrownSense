@@ -156,7 +156,7 @@ dmypy.json
 # Pyre type checker
 .pyre/
 
-config.py
+config.json
 /dist.tar.gz
 /dist-remote
 /dev.sh

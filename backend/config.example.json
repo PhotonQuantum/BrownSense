@@ -1,0 +1,23 @@
+{
+  "device_id": "1",
+  "couchdb": {
+    "host": "https://brownsense.misaka.center/db/",
+    "username": "<username>",
+    "password": "<password>"
+  },
+  "debug": {
+    "actuator": true,
+    "sensor": true
+  },
+  "graceful": true,
+  "limit": {
+    "h2s": [
+      40,
+      60
+    ],
+    "nh3": [
+      40,
+      60
+    ]
+  }
+}
