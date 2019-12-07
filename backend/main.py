@@ -12,7 +12,6 @@ override = 0
 
 def main():
     killer = GracefulKiller()
-    wait_network_online()
     sensor = Sensor(cfg.sensor_ports, cfg.debug)
     actuator = Actuator(cfg.relay_port, cfg.debug)
     with ThreadPoolExecutor() as executor, Remote(cfg.couchdb, cfg.device_id, callback, cfg.graceful) as remote:

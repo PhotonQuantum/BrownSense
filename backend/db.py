@@ -1,7 +1,7 @@
 #!/usr/bin/python3
 from cloudant import CouchDB
 from concurrent.futures.thread import ThreadPoolExecutor
-import requests
+from requests.exceptions import HTTPError, ConnectionError, Timeout
 from uuid import uuid4
 from queue import SimpleQueue
 import time
@@ -42,34 +42,64 @@ class Remote:
             if doc:
                 logger.debug(f"{doc}")
                 try:
-                    self._db.dbs["datagrid"].create_document(doc)
-                except requests.HTTPError as e:
+                    self._db.datagrid.create_document(doc)
+                except HTTPError as e:
                     if e.response.status_code == 401:
                         logger.error("UnauthorizedError. Maybe device_id is not a user in db?")
                     elif e.response.status_code == 403:
                         logger.error("ForbiddenError. Wrong device_id.")
                     else:
                         raise
+                except (ConnectionError, Timeout) as e:
+                    logger.warning("Network error.")
+                except Database.DatabaseNotReadyError:
+                    logger.warning("Database not ready")
             else:
                 logger.debug("dg_submit_thread terminated")
                 break
 
     @logger.catch
     def _cmd_watcher_thread(self):
-        query = self._db.dbs["command"].get_query_result({"type": "queue", "device": self._device_id})
+        retry = True
+        while retry:
+            try:
+                if self._terminated: return
+                query = self._db.command.get_query_result({"type": "queue", "device": self._device_id})
+                retry = False
+            except Database.DatabaseNotReadyError:
+                logger.debug("Database not ready, waiting...")
+                time.sleep(1)
+
+        logger.info("MQ started.")
+
         if query[0]:
             queue_top = query[0][0]["top"]
         else:
             queue_top = 0
         while not self._terminated:
-            print(f"[C] MQ top: { queue_top }")
-            query = self._db.dbs["command"].get_query_result(
+            query = self._db.command.get_query_result(
                 {"type": "task", "device": self._device_id, "created_at": {"$gt": queue_top}}, sort=[{"created_at": "desc"}])
-            if query[0]:
-                params = query[0][0]
-                queue_top = params["created_at"]
-                self._db.update_doc("command", {"type": "queue", "device": self._device_id}, {"type": "queue", "device": self._device_id, "top": queue_top})
+            try:
+                query_result = query[0]
+            except (ConnectionError, Timeout) as e:
+                logger.warning("MQ lost.")
+                query_result = None
+            if query_result:
+                params = query_result[0]
+                logger.info(f"{ params }")
                 self._callback(params["payload"]["event"], params["payload"]["data"])
+                queue_top = params["created_at"]
+                retry = True
+                while retry:
+                    try:
+                        if self._terminated: return
+                        self._db.update_doc("command", {"type": "queue", "device": self._device_id}, {"type": "queue", "device": self._device_id, "top": queue_top})
+                        logger.debug(f"MQ top updated")
+                        retry = False
+                    except (ConnectionError, Timeout) as e:
+                        logger.warning("Network error")
+                        time.sleep(1)
+
             time.sleep(1)
 
     def report_summary(self, status, sensor, actuator):
@@ -79,13 +109,17 @@ class Remote:
         logger.debug(f"{doc}")
         try:
             self._db.update_doc("summary", {"device": self._device_id}, doc)
-        except requests.HTTPError as e:
+        except HTTPError as e:
             if e.response.status_code == 401:
                 logger.error("UnauthorizedError. Maybe device_id is not a user in db?")
             elif e.response.status_code == 403:
                 logger.error("ForbiddenError. Wrong device_id.")
             else:
                 raise
+        except (ConnectionError, Timeout) as e:
+            logger.warning("Network error.")
+        except Database.DatabaseNotReadyError:
+            logger.warning("Database not ready.")
 
     def report_datagrid(self, sensor):
         doc_1 = {"_id": uuid4().hex, "time": time.time(), "device": self._device_id,
@@ -99,24 +133,46 @@ class Remote:
 class Database:
     # _delays = [0.5, 0.5, 1, 1, 1]
     _delays = [0.5]
-    dbs = {}
+    _dbs = {}
+    _connected = False
+
+    class DatabaseNotReadyError(Exception):
+        pass
 
     def __init__(self, url, username, password, dbs):
-        self._server = CouchDB(username, password, url=url, auto_renew=True, timeout=10, connect=True)
+        self._server = CouchDB(username, password, url=url, auto_renew=True, timeout=10)
+        try:
+            self._server.connect()
+            _connected = True
+        except ConnectionError:
+            logger.warning("Unable to connect database. Retry at next db call.")
         for db in dbs:
-            self.dbs[db] = self._server[db]
+            if self._connected:
+                self._dbs[db] = self._server[db]
+            else:
+                self._dbs[db] = None
+
+    def __getattr__(self, item):
+        if item in self._dbs.keys():
+            if not self._connected:
+                try:
+                    self._server.connect()
+                    self._connected = True
+                except ConnectionError:
+                    raise self.DatabaseNotReadyError("Database not connected.")
+            if self._dbs[item] is None:
+                self._dbs[item] = self._server[item]
+            return self._dbs[item]
+        else:
+            raise AttributeError
 
     def update_doc(self, db, mango_query, data):
-        query = self.dbs[db].get_query_result(mango_query)
-        # try: except ConnectionError:
+        query = getattr(self, db).get_query_result(mango_query)
         if query[0]:
-            doc = self.dbs[db][query[0][0]["_id"]]
+            doc = getattr(self, db)[query[0][0]["_id"]]
             for item in data:
                 doc[item] = data[item]
             doc.save()
         else:
-            try:
-                data["_id"] = uuid4().hex
-                self.dbs[db].create_document(data)
-            except requests.HTTPError as e:
-                raise
+            data["_id"] = uuid4().hex
+            self.dbs[db].create_document(data)
