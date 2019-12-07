@@ -108,10 +108,10 @@
                     selector: {
                         device: this.device,
                         type: "h2s",
-                        time: {$gt: new Date() / 1000 - 200}
+                        time: {$gt: new Date() / 1000 - 3600}
                     },
                     sort: [{time: "desc"}],
-                    limit: 30
+                    limit: 100
                 }
             },
             nh3_grid() {
@@ -120,10 +120,10 @@
                     selector: {
                         device: this.device,
                         type: "nh3",
-                        time: {$gt: new Date() / 1000 - 200}
+                        time: {$gt: new Date() / 1000 - 3600}
                     },
                     sort: [{time: "desc"}],
-                    limit: 30
+                    limit: 100
                 }
             }
         }
