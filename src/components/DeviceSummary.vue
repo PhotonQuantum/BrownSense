@@ -33,7 +33,7 @@
                                 <v-icon v-if="this.h2s <= 40">mdi-check-circle</v-icon>
                                 <v-icon v-else>mdi-alert-circle</v-icon>
                             </v-list-item-icon>
-                            <v-list-item-subtitle class="text-right">{{ h2s }}ppm</v-list-item-subtitle>
+                            <v-list-item-subtitle class="text-right">{{ h2s }} units</v-list-item-subtitle>
                         </v-list-item>
                     </v-list>
                     <v-col cols="12">
@@ -48,7 +48,7 @@
                                 <v-icon v-if="this.nh3 <= 40">mdi-check-circle</v-icon>
                                 <v-icon v-else>mdi-alert-circle</v-icon>
                             </v-list-item-icon>
-                            <v-list-item-subtitle class="text-right">{{ nh3 }}ppm</v-list-item-subtitle>
+                            <v-list-item-subtitle class="text-right">{{ nh3 }} units</v-list-item-subtitle>
                         </v-list-item>
                     </v-list>
                     <v-col cols="12">
