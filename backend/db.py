@@ -5,6 +5,7 @@ import requests
 from uuid import uuid4
 from queue import SimpleQueue
 import time
+from loguru import logger
 
 
 class Remote:
@@ -19,39 +20,41 @@ class Remote:
         self._executor = ThreadPoolExecutor()
         self._executor.submit(self._dg_submit_thread, self._dg_queue)
         self._executor.submit(self._cmd_watcher_thread)
-        print("[+] remote init complete")
+        logger.info("Remote init complete")
 
     def __enter__(self):
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
-        print("[.] terminating remote objects")
+        logger.debug("Terminating remote objects")
         if self._graceful:
             self.report_summary("offline", [0, 0], False)
         self._terminated = True
         self._dg_queue.put(None)
-        print("[.] remote thread shutdown signal sent")
+        logger.debug("Remote thread shutdown signal sent")
         self._executor.shutdown()
-        print("[-] remote terminated")
+        logger.info("Remote terminated")
 
+    @logger.catch
     def _dg_submit_thread(self, queue):
         while True:
             doc = queue.get()
             if doc:
-                print(f"[G] {doc}")
+                logger.debug(f"{doc}")
                 try:
                     self._db.dbs["datagrid"].create_document(doc)
                 except requests.HTTPError as e:
                     if e.response.status_code == 401:
-                        print("UnauthorizedError. Maybe device_id is not a user in db?")
+                        logger.error("UnauthorizedError. Maybe device_id is not a user in db?")
                     elif e.response.status_code == 403:
-                        print("ForbiddenError. Wrong device_id.")
+                        logger.error("ForbiddenError. Wrong device_id.")
                     else:
                         raise
             else:
-                print("[-] dg_submit_thread terminated")
+                logger.debug("dg_submit_thread terminated")
                 break
 
+    @logger.catch
     def _cmd_watcher_thread(self):
         query = self._db.dbs["command"].get_query_result({"type": "queue", "device": self._device_id})
         if query[0]:
@@ -64,10 +67,8 @@ class Remote:
                 {"type": "task", "device": self._device_id, "created_at": {"$gt": queue_top}}, sort=[{"created_at": "desc"}])
             if query[0]:
                 params = query[0][0]
-                print(f"[C] { params }")
                 queue_top = params["created_at"]
                 self._db.update_doc("command", {"type": "queue", "device": self._device_id}, {"type": "queue", "device": self._device_id, "top": queue_top})
-                print(f"[C] MQ top updated")
                 self._callback(params["payload"]["event"], params["payload"]["data"])
             time.sleep(1)
 
@@ -75,14 +76,14 @@ class Remote:
         doc = {"device": self._device_id, "time": time.time(), "status": status,
                "h2s": sensor[0], "nh3": sensor[1],
                "actuator": actuator}
-        print(f"[S] {doc}")
+        logger.debug(f"{doc}")
         try:
             self._db.update_doc("summary", {"device": self._device_id}, doc)
         except requests.HTTPError as e:
             if e.response.status_code == 401:
-                print("UnauthorizedError. Maybe device_id is not a user in db?")
+                logger.error("UnauthorizedError. Maybe device_id is not a user in db?")
             elif e.response.status_code == 403:
-                print("ForbiddenError. Wrong device_id.")
+                logger.error("ForbiddenError. Wrong device_id.")
             else:
                 raise
 

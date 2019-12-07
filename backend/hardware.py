@@ -1,5 +1,6 @@
 #!/usr/bin/python3
 import random
+from loguru import logger
 
 
 class Sensor:
@@ -15,7 +16,7 @@ class Sensor:
             # TODO init sensors here
 
     def __del__(self):
-        print("[-] Sensor terminated")
+        logger.info("Sensor terminated")
         self._terminated = True
         # TODO stop sensors
 
@@ -28,7 +29,6 @@ class Sensor:
             else:
                 # TODO read sensor data here
                 rtn = 0
-                print("delete this line")
             yield rtn
 
     @property
@@ -37,7 +37,7 @@ class Sensor:
             return self._dummy_data
         else:
             # TODO return sensor data
-            return "..."
+            pass
 
 
 class Actuator:
@@ -50,7 +50,7 @@ class Actuator:
 
     def __del__(self):
         # TODO open relay and stop GPIO
-        print("[-] Relay released")
+        logger.info("Relay released")
 
     @property
     def closed(self):
@@ -66,4 +66,4 @@ class Actuator:
             self._dummy_status = 1 if val else -1
         else:
             # TODO set relay state here
-            print("delete me")
+            pass

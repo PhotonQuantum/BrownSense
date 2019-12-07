@@ -5,7 +5,7 @@ from db import Remote
 from hardware import Sensor, Actuator
 from utils import GracefulKiller, wait_network_online
 import config as cfg
-import argparse
+from loguru import logger
 
 override = 0
 
@@ -30,10 +30,10 @@ def main():
             elif reading[0] < cfg.limit["h2s"][0] and reading[0] < cfg.limit["nh3"][0]:
                 actuator.closed = False
             if killer.kill_now:
-                print("[SIGTERM]")
+                logger.debug("[SIGTERM]")
                 break
             time.sleep(1)
-    print("[-] Main end")
+    logger.info("Main end")
 
 
 def callback(event, params):
@@ -46,7 +46,7 @@ def report_thread(remote, sensor, actuator, killer):
     while not killer.kill_now:
         remote.report_summary(override, sensor.reading, actuator.closed)
         time.sleep(1)
-    print("[-] report thread terminated")
+    logger.info("report thread terminated")
 
 
 if __name__ == "__main__":
