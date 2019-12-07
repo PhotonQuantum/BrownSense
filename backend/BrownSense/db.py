@@ -182,7 +182,15 @@ class Database:
             doc = getattr(self, db)[query[0][0]["_id"]]
             for item in data:
                 doc[item] = data[item]
-            doc.save()
+            try:
+                doc.save()
+            except HTTPError as e:
+                if e.response.status_code == 409:
+                    doc.fetch()
+                    for item in data:
+                        doc[item] = data[item]
+                    doc.save()
+
         else:
             data["_id"] = uuid4().hex
             getattr(self, db).create_document(data)
