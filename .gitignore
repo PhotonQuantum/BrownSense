@@ -161,3 +161,4 @@ config.json
 /dist-remote
 /dev.sh
 /prod.sh
+/backend/build.sh

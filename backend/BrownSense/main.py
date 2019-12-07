@@ -1,9 +1,9 @@
 #!/usr/bin/python3
 from concurrent.futures.thread import ThreadPoolExecutor
 import time
-from db import Remote
-from hardware import Sensor, Actuator
-from utils import GracefulKiller
+from .db import Remote
+from .hardware import Sensor, Actuator
+from .utils import GracefulKiller
 from loguru import logger
 import json
 import argparse
