@@ -1,3 +1,0 @@
-[submodule "backend/PiPyADC"]
-	path = backend/PiPyADC
-	url = https://github.com/ul-gh/PiPyADC
