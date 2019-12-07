@@ -24,9 +24,9 @@ def main():
             if report_counter > 10:
                 remote.report_datagrid(reading)
                 report_counter = 0
-            if reading[0] > cfg.limit["h2s"][1] or reading[1] > cfg.limit["nh3"][1]:
+            if (reading[0] > cfg.limit["h2s"][1] or reading[1] > cfg.limit["nh3"][1]) or (override == "force_on"):
                 actuator.closed = True
-            elif reading[0] < cfg.limit["h2s"][0] and reading[0] < cfg.limit["nh3"][0]:
+            elif (reading[0] < cfg.limit["h2s"][0] and reading[0] < cfg.limit["nh3"][0]) or (override == "force_off"):
                 actuator.closed = False
             if killer.kill_now:
                 logger.debug("[SIGTERM]")
