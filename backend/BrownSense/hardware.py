@@ -35,7 +35,7 @@ class Sensor:
                 rtn = self._dummy_data
             else:
                 raw_readings = self._ads.read_sequence(CH_SEQ)
-                rtn = [i * self._ads.v_per_digit for i in raw_readings]
+                rtn = [round(i * self._ads.v_per_digit * 100, 2) for i in raw_readings]
             yield rtn
 
     @property
