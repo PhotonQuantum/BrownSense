@@ -183,4 +183,4 @@ class Database:
             doc.save()
         else:
             data["_id"] = uuid4().hex
-            self.dbs[db].create_document(data)
+            getattr(self, db).create_document(data)
