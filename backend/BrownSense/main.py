@@ -9,9 +9,11 @@ import json
 import argparse
 
 override = 0
+last_reading = [0, 0]
 
 
 def main():
+    global last_reading
     killer = GracefulKiller()
     parser = argparse.ArgumentParser(description="A distributed IoT platform for monitoring and improving toilet's indoor air quality.")
     parser.add_argument('config', metavar='config', type=str, help='The path to config file')
@@ -26,6 +28,7 @@ def main():
         sensor_stream = sensor.stream()
         report_counter = 0
         for reading in sensor_stream:
+            last_reading = reading
             report_counter += 1
             if report_counter > 10:
                 remote.report_datagrid(reading)
@@ -49,7 +52,7 @@ def callback(event, params):
 
 def report_thread(remote, sensor, actuator, killer):
     while not killer.kill_now:
-        remote.report_summary(override, sensor.reading, actuator.closed)
+        remote.report_summary(override, last_reading, actuator.closed)
         time.sleep(1)
     logger.info("report thread terminated")
 
