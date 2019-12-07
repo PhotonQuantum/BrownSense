@@ -41,19 +41,27 @@ class Remote:
             doc = queue.get()
             if doc:
                 logger.debug(f"{doc}")
-                try:
-                    self._db.datagrid.create_document(doc)
-                except HTTPError as e:
-                    if e.response.status_code == 401:
-                        logger.error("UnauthorizedError. Maybe device_id is not a user in db?")
-                    elif e.response.status_code == 403:
-                        logger.error("ForbiddenError. Wrong device_id.")
-                    else:
-                        raise
-                except (ConnectionError, Timeout) as e:
-                    logger.warning("Network error.")
-                except Database.DatabaseNotReadyError:
-                    logger.warning("Database not ready")
+                retry = True
+                while retry:
+                    try:
+                        self._db.datagrid.create_document(doc)
+                        retry = False
+                    except HTTPError as e:
+                        retry = False
+                        if e.response.status_code == 401:
+                            logger.error("UnauthorizedError. Maybe device_id is not a user in db?")
+                        elif e.response.status_code == 403:
+                            logger.error("ForbiddenError. Wrong device_id.")
+                        else:
+                            raise
+                    except (ConnectionError, Timeout) as e:
+                        logger.warning("Network error.")
+                        retry = True
+                        time.sleep(1)
+                    except Database.DatabaseNotReadyError:
+                        logger.warning("Database not ready")
+                        retry = True
+                        time.sleep(1)
             else:
                 logger.debug("dg_submit_thread terminated")
                 break
