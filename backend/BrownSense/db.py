@@ -122,6 +122,8 @@ class Remote:
                 logger.error("UnauthorizedError. Maybe device_id is not a user in db?")
             elif e.response.status_code == 403:
                 logger.error("ForbiddenError. Wrong device_id.")
+            elif e.response.status_code == 409:
+                logger.error("Conflict. Slow network (your last request has reached the server but the client doesn't know) or another device is using the same credential.")
             else:
                 raise
         except (ConnectionError, Timeout) as e:
