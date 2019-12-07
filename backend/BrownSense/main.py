@@ -30,8 +30,10 @@ def main():
         for reading in sensor_stream:
             last_reading = reading
             report_counter += 1
-            if report_counter > 10:
-                remote.report_datagrid(reading)
+            if report_counter % 60 == 0:
+                remote.report_datagrid(reading, "minutely")
+            if report_counter % 3600 == 0:
+                remote.report_datagrid(reading, "hourly")
                 report_counter = 0
             if (reading[0] > cfg["limit"]["h2s"][1] or reading[1] > cfg["limit"]["nh3"][1]) or (override == "force_on"):
                 actuator.closed = True

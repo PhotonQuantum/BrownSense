@@ -129,11 +129,11 @@ class Remote:
         except Database.DatabaseNotReadyError:
             logger.warning("Database not ready.")
 
-    def report_datagrid(self, sensor):
+    def report_datagrid(self, sensor, graph):
         doc_1 = {"_id": uuid4().hex, "time": time.time(), "device": self._device_id,
-                 "type": "h2s", "data": sensor[0]}
+                 "type": "h2s", "data": sensor[0], "graph": graph}
         doc_2 = {"_id": uuid4().hex, "time": time.time(), "device": self._device_id,
-                 "type": "nh3", "data": sensor[1]}
+                 "type": "nh3", "data": sensor[1], "graph": graph}
         self._dg_queue.put(doc_1)
         self._dg_queue.put(doc_2)
 
