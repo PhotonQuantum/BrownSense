@@ -1,0 +1,11 @@
+[Unit]
+Description=A distributed IoT platform for monitoring and improving toilet's indoor air quality.
+
+[Service]
+User=pi
+ExecStart=/usr/local/bin/brownsense /etc/brownsense/config.json
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
