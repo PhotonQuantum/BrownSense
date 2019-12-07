@@ -81,7 +81,7 @@
                 }
             },
             actuator: function () {
-                return this.this_device.actuator ? "Working" : "StandBy";
+                return this.this_device.actuator ? "Working" : "Stopped";
             },
         },
         watch: {
