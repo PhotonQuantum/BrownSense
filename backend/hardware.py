@@ -1,10 +1,16 @@
 #!/usr/bin/python3
 import random
 from loguru import logger
+from PiPyADC.pipyadc import ADS1256
+from PiPyADC.ADS1256_definitions import POS_AIN0, POS_AIN1, NEG_AINCOM
+CH1 = POS_AIN0 | NEG_AINCOM
+CH2 = POS_AIN1 | NEG_AINCOM
+CH_SEQ = (CH1, CH2)
 
 
 class Sensor:
     _terminated = False
+    _ads = None
 
     def __init__(self, sensor_ports=None, dummy=False):
         if sensor_ports is None:
@@ -13,7 +19,10 @@ class Sensor:
             self._dummy_data = [50, 50]
         else:
             self._dummy_data = None
-            # TODO init sensors here
+            self._ads = ADS1256()
+            logger.debug("Calibrating ADC")
+            self._ads.cal_self()
+            logger.info("ADC Ready")
 
     def __del__(self):
         logger.info("Sensor terminated")
@@ -27,8 +36,8 @@ class Sensor:
                 self._dummy_data[1] += random.randint(-3, 3)
                 rtn = self._dummy_data
             else:
-                # TODO read sensor data here
-                rtn = 0
+                raw_readings = self._ads.read_sequence(CH_SEQ)
+                rtn = [i * self._ads.v_per_digit for i in raw_readings]
             yield rtn
 
     @property
@@ -36,7 +45,9 @@ class Sensor:
         if self._dummy_data:
             return self._dummy_data
         else:
-            # TODO return sensor data
+            raw_readings = self._ads.read_sequence(CH_SEQ)
+            rtn = [i * self._ads.v_per_digit for i in raw_readings]
+            return rtn
             pass
 
 

@@ -5,7 +5,8 @@ couchdb = {
     "username": "***",
     "password": "***"
 }
-debug = True
+debug_actuator = True
+debug_sensor = True
 graceful = True
 sensor_ports = [1, 2]
 relay_port = 1

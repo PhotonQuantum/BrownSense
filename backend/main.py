@@ -12,8 +12,8 @@ override = 0
 
 def main():
     killer = GracefulKiller()
-    sensor = Sensor(cfg.sensor_ports, cfg.debug)
-    actuator = Actuator(cfg.relay_port, cfg.debug)
+    sensor = Sensor(cfg.sensor_ports, cfg.debug_sensor)
+    actuator = Actuator(cfg.relay_port, cfg.debug_actuator)
     with ThreadPoolExecutor() as executor, Remote(cfg.couchdb, cfg.device_id, callback, cfg.graceful) as remote:
         executor.submit(report_thread, remote, sensor, actuator, killer)
 
