@@ -108,6 +108,7 @@
                     selector: {
                         device: this.device,
                         type: "h2s",
+                        graph: "minutely",
                         time: {$gt: new Date() / 1000 - 3600}
                     },
                     sort: [{time: "desc"}],
@@ -120,6 +121,7 @@
                     selector: {
                         device: this.device,
                         type: "nh3",
+                        graph: "minutely",
                         time: {$gt: new Date() / 1000 - 3600}
                     },
                     sort: [{time: "desc"}],
