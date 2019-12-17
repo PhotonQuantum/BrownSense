@@ -27,7 +27,8 @@ setup(
         'cloudant',
         'requests',
         'loguru',
-        'PiPyADC'
+        'PiPyADC',
+        'RPi.GPIO'
     ],
     entry_points={
         'console_scripts': [

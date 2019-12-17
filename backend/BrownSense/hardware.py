@@ -1,11 +1,16 @@
 #!/usr/bin/python3
 import random
 from loguru import logger
+try:
+    import RPi.GPIO as GPIO
+except RuntimeError:
+    pass
 from PiPyADC.pipyadc import ADS1256
 from PiPyADC.ADS1256_definitions import POS_AIN0, POS_AIN1, NEG_AINCOM
 CH1 = POS_AIN0 | NEG_AINCOM
 CH2 = POS_AIN1 | NEG_AINCOM
 CH_SEQ = (CH1, CH2)
+RELAY_PIN = 26
 
 
 class Sensor:
@@ -25,7 +30,7 @@ class Sensor:
     def __del__(self):
         logger.info("Sensor terminated")
         self._terminated = True
-        # TODO stop sensors
+        self._ads.standby()
 
     def stream(self):
         while not self._terminated:
@@ -54,11 +59,14 @@ class Actuator:
         if dummy:
             self._dummy_status = -1
         else:
-            # TODO init relay here
+            GPIO.setwarnings(False)
+            GPIO.setmode(GPIO.BCM)
+            GPIO.setup(RELAY_PIN, GPIO.OUT)
             self._dummy_status = None
 
     def __del__(self):
-        # TODO open relay and stop GPIO
+        GPIO.output(RELAY_PIN, False)
+        GPIO.cleanup()
         logger.info("Relay released")
 
     @property
@@ -66,13 +74,12 @@ class Actuator:
         if self._dummy_status:
             return False if self._dummy_status == -1 else True
         else:
-            # TODO read relay status here (GPIO.read(x))
-            return False
+            return GPIO.input(RELAY_PIN)
 
     @closed.setter
     def closed(self, val):
         if self._dummy_status:
             self._dummy_status = 1 if val else -1
         else:
-            # TODO set relay state here
+            GPIO.output(RELAY_PIN, val)
             pass
