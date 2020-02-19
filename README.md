@@ -15,3 +15,8 @@ This site is deployed on Tencent Cloud, a cloud service provider in mainland Chi
 ## Screenshots
 ![Screenshot 1](screenshots/1.jpg)
 ![Screenshot 2](screenshots/2.jpg)
+[![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2FPhotonQuantum%2FBrownSense.svg?type=shield)](https://app.fossa.io/projects/git%2Bgithub.com%2FPhotonQuantum%2FBrownSense?ref=badge_shield)
+
+
+## License
+[![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2FPhotonQuantum%2FBrownSense.svg?type=large)](https://app.fossa.io/projects/git%2Bgithub.com%2FPhotonQuantum%2FBrownSense?ref=badge_large)
