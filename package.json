@@ -11,7 +11,7 @@
   "dependencies": {
     "axios": "^0.21.1",
     "babel-polyfill": "^6.26.0",
-    "chart.js": "^2.8.0",
+    "chart.js": "^2.9.4",
     "core-js": "^3.1.2",
     "pouch-vue": "^0.3.4",
     "pouchdb-authentication": "^1.1.3",
